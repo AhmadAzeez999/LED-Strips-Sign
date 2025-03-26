@@ -3,7 +3,9 @@
 // Initialize static instance to nullptr
 Display* Display::instance = nullptr;
 
-uint32_t currentColourHex = 0xFF0000;
+extern uint32_t currentTopColourHex = 0xFF0000;
+extern uint32_t currentBottomColourHex = 0xFF0000;
+extern uint32_t currentFullColourHex = 0xFF0000;
 
 // Singleton accessor
 Display& Display::getInstance()
@@ -36,6 +38,16 @@ void Display::setup(int brightness)
   {
     strips[i] = Adafruit_NeoPixel(NUMPIXELS, stripPins[i], NEO_GRB + NEO_KHZ800);
     strips[i].begin();
+    strips[i].setBrightness(brightness);
+    strips[i].show();
+  }
+}
+
+// To set the brightness
+void Display::setBrightness(int brightness)
+{
+  for (int i = 0; i < NUM_STRIPS; i++)
+  {
     strips[i].setBrightness(brightness);
     strips[i].show();
   }
@@ -203,10 +215,10 @@ void Display::displayText(const char* text1, const char* text2, const char* comm
 {
   bool useBigFont = false;
 
-  if (strcmp(displayType, "f") == 0) 
+  if (strcmp(displayType, "yes") == 0) 
     useBigFont = true;
 
-  uint32_t color = currentColourHex;  // Default text color
+  uint32_t colour = currentFullColourHex;
   clearBuffer(useBigFont);
 
   if (strcmp(command, "scroll") == 0)
@@ -231,8 +243,8 @@ void Display::displayText(const char* text1, const char* text2, const char* comm
       {
         int charWidth = useBigFont ? getCharacterWidth15x15(text1[i]) : getCharacterWidth7x7(text1[i]);
         if (currentX >= -charWidth && currentX < NUMPIXELS)
-          useBigFont ? drawCharacter15x15(text1[i], currentX, 1, color)
-                     : drawCharacter7x7(text1[i], currentX, 0, color);
+          useBigFont ? drawCharacter15x15(text1[i], currentX, 1, colour)
+                     : drawCharacter7x7(text1[i], currentX, 0, colour);
         currentX += charWidth + 1;
       }
 
@@ -261,7 +273,7 @@ void Display::displayText(const char* text1, const char* text2, const char* comm
       for (int i = 0; i < textLen; i++)
       {
         int charWidth = getCharacterWidth15x15(text1[i]);
-        drawCharacter15x15(text1[i], currentX, startY, color);
+        drawCharacter15x15(text1[i], currentX, startY, colour);
         currentX += charWidth + 1;
       }
     }
@@ -286,30 +298,21 @@ void Display::displayText(const char* text1, const char* text2, const char* comm
       int topX = (NUMPIXELS - topWidth) / 2;
       int bottomX = (NUMPIXELS - bottomWidth) / 2;
 
-      int currentX = 0;
-
-      // Render Top Row (Upper 7 Strips)
-      if (strcmp(displayType, "t") == 0)
+      int currentX = topX;
+      for (int i = 0; i < topLen; i++)
       {
-        currentX = topX;
-        for (int i = 0; i < topLen; i++)
-        {
-          int charWidth = getCharacterWidth7x7(text1[i]);
-          drawCharacter7x7(text1[i], currentX, 0, color);  // Y = 0 for top row
-          currentX += charWidth + 1;
-        }
+        int charWidth = getCharacterWidth7x7(text1[i]);
+        drawCharacter7x7(text1[i], currentX, 0, currentTopColourHex);  // Y = 0 for top row
+        currentX += charWidth + 1;
       }
 
-      if (strcmp(displayType, "b") == 0)
+      // Render Bottom Row (Lower 7 Strips)
+      currentX = bottomX;
+      for (int i = 0; i < bottomLen; i++)
       {
-        // Render Bottom Row (Lower 7 Strips)
-        currentX = bottomX;
-        for (int i = 0; i < bottomLen; i++)
-        {
-          int charWidth = getCharacterWidth7x7(text2[i]);
-          drawCharacter7x7(text2[i], currentX, 8, color);  // Y = 8 for bottom row
-          currentX += charWidth + 1;
-        }
+        int charWidth = getCharacterWidth7x7(text2[i]);
+        drawCharacter7x7(text2[i], currentX, 8, currentBottomColourHex);  // Y = 8 for bottom row
+        currentX += charWidth + 1;
       }
     }
 
@@ -317,26 +320,68 @@ void Display::displayText(const char* text1, const char* text2, const char* comm
   }
 }
 
-void Display::changeColour(const int pattern)
+void Display::setTopColour(const uint32_t colourHex)
 {
-  if (pattern == 0)
+  currentTopColourHex = colourHex;
+}
+void Display::setBottomColour(const uint32_t colourHex)
+{
+  currentBottomColourHex = colourHex;
+}
+
+void Display::setFullColour(const uint32_t colourHex)
+{
+  currentFullColourHex = colourHex;
+}
+
+void Display::displayCustomPixels(String input)
+{
+  // Find the opening and closing brackets
+  int openBracket = input.indexOf('[');
+  int closeBracket = input.indexOf(']');
+  
+  // Extract the coordinates string
+  String coordString = input.substring(openBracket + 1, closeBracket);
+  
+  // Clear the display first
+  clearBuffer(true);
+  
+  // Parse the coordinates
+  int startIndex = 0;
+  int endIndex = 0;
+  
+  while (startIndex < coordString.length())
   {
-    // Display::getInstance().displayText("Green", "Purple", "STATIC", "", false);
-    currentColourHex = 0x00FF00;
+    clearBuffer(true);
+
+    // Find the next coordinate pair
+    endIndex = coordString.indexOf(')', startIndex);
+    
+    if (endIndex == -1)
+      break;
+    
+    // Extract the coordinate pair
+    String coordPair = coordString.substring(startIndex, endIndex + 1);
+    
+    // Remove parentheses and split x and y
+    coordPair.replace("(", "");
+    coordPair.replace(")", "");
+    
+    int commaIndex = coordPair.indexOf(',');
+    
+    if (commaIndex != -1)
+    {
+      int x = coordPair.substring(0, commaIndex).toInt();
+      int y = coordPair.substring(commaIndex + 1).toInt();
+      
+      // Set the pixel
+      setPixel(y, x, 0xFF0000);  // Red color
+    }
+    
+    // Move to next coordinate
+    startIndex = endIndex + 2;
   }
-  else if (pattern == 1)
-  {
-    // Display::getInstance().displayText("Purple", "Green", "STATIC", "", false);
-    currentColourHex = 0x800080; // Purple
-  }
-  else if (pattern == 2)
-  {
-    // Display::getInstance().displayText("Blue", "Purple", "STATIC", "", false);
-    currentColourHex = 0x0000FF; // Blue
-  }
-  else if (pattern == 3)
-  {
-    // Display::getInstance().displayText("Green", "Blue", "STATIC", "", false);
-    currentColourHex = 0xFF0000; // Red
-  }
+
+  // Update LED
+  updateLEDs(true);
 }

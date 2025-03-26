@@ -31,23 +31,23 @@ function pad-text($value)
     
     if($value.command -eq "pauseTimer")
     {
-        return  "$" + $value.command
+        return  "$" + $value.command + "$"
     }
     elseif($value.command -eq "resetTimer")
     {
-        return  "$" + $value.command
+        return  "$" + $value.command + "$"
     }
     elseif($value.command -eq "settings")
     {
-        return "$" + $value.command + "[" + $value.brightness + ", " +  $value.tcolor + ", " +  $value.bcolor + ", " + $value.fcolor + "]"
+        return "$" + $value.command + "$" + "[" + $value.brightness + ", " +  $value.tcolor + ", " +  $value.bcolor + ", " + $value.fcolor + "]"
     }
     elseif($value.command -eq "custom")
     {
-        return "$" + $value.command + "[" + $value.data + "]"
+        return "$" + $value.command + "$" + "[" + $value.data + "]"
     }
     else
     {
-        return "$" + $value.command + "$" + $value.display + "[" + $value.data + "]"
+        return "$" + $value.command + "$" + $value.isBig + "[" + $value.data + "]"
     }
 
 }

@@ -30,23 +30,28 @@
         </div>
         
         <div class="control-panel">
-            <input type="text" class="message-input" placeholder="Enter the message here" id="message">
-            <p id="char-count">0/8</p>
+            <div>
+                <label class="with-top-bottom"><h1>Top:</h1></label>
+                <input type="text" class="message-input" placeholder="Enter the message here" id="message">
+                <p id="char-count">0/8</p>
+            </div>
+
+            <div class="with-top-bottom">
+                <label class="with-top-bottom"><h1>Below:</h1></label>
+                <input type="text" class="message-input" placeholder="Enter the message here" id="message2">
+                <p id="char-count2">0/8</p>
+            </div>
 
             <div class="options-panel">
                 <div class="option-group">
                     <label>How should it be displayed?</label>
                     <div class="radio-group">
                         <div class="radio-option">
-                            <input type="radio" name="display" value="t" id="top">
+                            <input type="radio" name="isBig" value="no" id="top">
                             <label for="top">Top/Bottom</label>
                         </div>
                         <div class="radio-option">
-                            <input type="radio" name="display" value="b" id="bottom">
-                            <label for="bottom">Bottom</label>
-                        </div>
-                        <div class="radio-option">
-                            <input type="radio" name="display" value="f" id="full" checked>
+                            <input type="radio" name="isBig" value="yes" id="full" checked>
                             <label for="full">Full Screen</label>
                         </div>
                     </div>

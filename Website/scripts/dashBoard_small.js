@@ -2,9 +2,15 @@ const API_URL = 'http://127.0.0.1:8080'; // Change 127.0.0.1 to localhost if you
 
 async function sendMessage()
 {
-	const message = document.getElementById('message').value;
+	let message = document.getElementById('message').value;
+	const message2 = document.getElementById('message2').value;
 	const animation = document.querySelector('input[name="animation"]:checked').value;
-	const display = document.querySelector('input[name="display"]:checked').value;
+	const isBig = document.querySelector('input[name="isBig"]:checked').value;
+
+	if (isBig === "no")
+	{
+		message = message + "," + message2;
+	}
 
 	if (!message)
 	{
@@ -18,7 +24,7 @@ async function sendMessage()
 			body: JSON.stringify(
 			{
 				"command": animation,
-				"display": display,
+				"isBig": isBig,
 				"data": message
 			})
 		});
@@ -77,7 +83,7 @@ async function start_timer()
 				body: JSON.stringify(
 				{
 					"command": "startTimer",
-					"display": "f",
+					"isBig": "yes",
 					"data": message.toString()
 				})
 			});
@@ -142,7 +148,7 @@ async function display_time()
 			body: JSON.stringify(
 			{
 				"command": "displayTime",
-				"display": "f",
+				"isBig": "yes",
 				"data": currentTime.toString()
 			})
 		});
