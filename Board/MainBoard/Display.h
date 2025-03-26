@@ -51,7 +51,7 @@ public:
   void setPixel(int x, int y, uint32_t color);
   
   // Text display methods
-  void displayText(const char* text1, const char* text2, const char* mode, const char* position, bool useBigFont);
+  void displayText(const char* text1, const char* text2, const char* command, const char* displayType);
 
   // Colour management
   void changeColour(const int scheme);

@@ -16,7 +16,7 @@ Timer timers;
 
     void RemoteControl::displayDefaultMessage() {
         Display::getInstance().clearBuffer(true);
-        Display::getInstance().displayText("Athletics ", "","STATIC","TOP", false);
+        Display::getInstance().displayText("Athletics ", "","statc","t");
         Display::getInstance().updateLEDs(false);
     }
 
@@ -25,15 +25,15 @@ Timer timers;
             bright += change;
             Display::getInstance().clearBuffer(true);
             if(bright == 10){
-              Display::getInstance().displayText("BrMax", "", "STATIC", "FULL",true);
+              Display::getInstance().displayText("BrMax", "", "statc", "f");
             }
             else if(bright == 1)
             {
-              Display::getInstance().displayText("BrMin", "", "STATIC", "FULL",true);
+              Display::getInstance().displayText("BrMin", "", "statc", "f");
             }
             else
             {
-              Display::getInstance().displayText(change > 0 ? "BrUp" : "BrDow", "", "STATIC", "FULL",true);
+              Display::getInstance().displayText(change > 0 ? "BrUp" : "BrDow", "", "statc", "f");
             }
             
             Display::getInstance().updateLEDs(true);
@@ -48,7 +48,7 @@ Timer timers;
             remoteStatus = !remoteStatus;
             Display::getInstance().clearBuffer(true);
             Serial.println(remoteStatus ? "RM ON" : "RM OFF");
-            Display::getInstance().displayText(remoteStatus ? "RMON" : "RMOFF", "", "STATIC", "FULL",true);
+            Display::getInstance().displayText(remoteStatus ? "RMON" : "RMOFF", "", "statc", "f");
             Display::getInstance().updateLEDs(true);
             delay(500);
         }
@@ -145,34 +145,34 @@ Timer timers;
     }
 
 
-void RemoteControl::manualTimerInput(uint32_t remoteCode)
-{ 
-      //Serial.println(remoteCode);
-      int digit = getNumberFromIR(remoteCode);
-      Serial.println(digit);
-      if(enteredValue < 10000)
-      {
-        if(digit != -1)
-        {
-          enteredValue = (enteredValue * 10) + digit;
-          updateDisplay(enteredValue);
-          //Serial.println(enteredValue);
-          //Serial.println(digit);
-          //digit = -1;
-        }
-        //Serial.println(digit);
-      }
-}
+// void RemoteControl::manualTimerInput(uint32_t remoteCode)
+// { 
+//       //Serial.println(remoteCode);
+//       int digit = getNumberFromIR(remoteCode);
+//       Serial.println(digit);
+//       if(enteredValue < 10000)
+//       {
+//         if(digit != -1)
+//         {
+//           enteredValue = (enteredValue * 10) + digit;
+//           updateDisplay(enteredValue);
+//           //Serial.println(enteredValue);
+//           //Serial.println(digit);
+//           //digit = -1;
+//         }
+//         //Serial.println(digit);
+//       }
+// }
 
-int RemoteControl::getNumberFromIR(uint32_t command) {
-    for (uint8_t i = 0; i < 10; i++) {
-        if (command == timerCodes[i]) {
-            Serial.print("Detected Number: ");
-            Serial.println(i);  // Print the detected number
-            return i;  // Return the actual number (0-9)
-        }
-    }
-}
+// int RemoteControl::getNumberFromIR(uint32_t command) {
+//     for (uint8_t i = 0; i < 10; i++) {
+//         if (command == timerCodes[i]) {
+//             Serial.print("Detected Number: ");
+//             Serial.println(i);  // Print the detected number
+//             return i;  // Return the actual number (0-9)
+//         }
+//     }
+// }
 
 void RemoteControl::updateDisplay(int time) {
     int minutes = time / 100;
@@ -186,7 +186,7 @@ void RemoteControl::updateDisplay(int time) {
 
     char timeString[6];
     sprintf(timeString, "%02d:%02d", minutes, seconds);
-    Display::getInstance().displayText(timeString, "", "STATIC", "CENTER", true);
+    Display::getInstance().displayText(timeString, "", "statc", "f");
 }
 
 

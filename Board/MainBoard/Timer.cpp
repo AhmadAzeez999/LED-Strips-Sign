@@ -58,7 +58,7 @@ void Timer::set(int minutes, int seconds)
 
     char timeString[6];
     sprintf(timeString, "%02d+:%02d", minutes, seconds);
-    Display::getInstance().displayText(timeString, "", "STATIC", "CENTER", true);
+    Display::getInstance().displayText(timeString, "", "STATIC", "CENTER");
     setMin(minutes);
     Serial.print("Timer Set: ");
     Serial.println(timeString);
@@ -106,7 +106,7 @@ void Timer::update()
 
       char timeString[6];
       sprintf(timeString, "%02d+:%02d", remainingMin,remainingSec);
-      Display::getInstance().displayText(timeString, "", "STATIC", "CENTER", true);
+      Display::getInstance().displayText(timeString, "", "statc", "f");
 
       Serial.println(remainingMin);
       Serial.println(remainingSec);

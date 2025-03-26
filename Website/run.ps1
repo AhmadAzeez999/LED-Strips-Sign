@@ -5,7 +5,7 @@ $http.Start();
 
 # Serial port setup 
 $enteredPort = Read-Host "Enter Comm PORT"
-$signPort = "COM $enteredPort"
+$signPort = "COM$enteredPort"
 $baudRate = Read-Host "Enter Baud Rate"
 
 

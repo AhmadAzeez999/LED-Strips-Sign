@@ -199,11 +199,17 @@ void Display::drawCharacter15x15(char c, int x, int y, uint32_t color)
   }
 }
 
-void Display::displayText(const char* text1, const char* text2, const char* mode, const char* position, bool useBigFont) {
+void Display::displayText(const char* text1, const char* text2, const char* command, const char* displayType)
+{
+  bool useBigFont = false;
+
+  if (strcmp(displayType, "f") == 0) 
+    useBigFont = true;
+
   uint32_t color = currentColourHex;  // Default text color
   clearBuffer(useBigFont);
 
-  if (strcmp(mode, "SCROLL") == 0)
+  if (strcmp(command, "scroll") == 0)
   {
     int speed = 50;
     int textLen = strlen(text1);
@@ -234,7 +240,7 @@ void Display::displayText(const char* text1, const char* text2, const char* mode
       delay(speed);
     }
   }
-  else if (strcmp(mode, "STATIC") == 0)
+  else if (strcmp(command, "statc") == 0)
   {
     if (useBigFont)
     {
@@ -280,22 +286,30 @@ void Display::displayText(const char* text1, const char* text2, const char* mode
       int topX = (NUMPIXELS - topWidth) / 2;
       int bottomX = (NUMPIXELS - bottomWidth) / 2;
 
+      int currentX = 0;
+
       // Render Top Row (Upper 7 Strips)
-      int currentX = topX;
-      for (int i = 0; i < topLen; i++)
+      if (strcmp(displayType, "t") == 0)
       {
-        int charWidth = getCharacterWidth7x7(text1[i]);
-        drawCharacter7x7(text1[i], currentX, 0, color);  // Y = 0 for top row
-        currentX += charWidth + 1;
+        currentX = topX;
+        for (int i = 0; i < topLen; i++)
+        {
+          int charWidth = getCharacterWidth7x7(text1[i]);
+          drawCharacter7x7(text1[i], currentX, 0, color);  // Y = 0 for top row
+          currentX += charWidth + 1;
+        }
       }
 
-      // Render Bottom Row (Lower 7 Strips)
-      currentX = bottomX;
-      for (int i = 0; i < bottomLen; i++)
+      if (strcmp(displayType, "b") == 0)
       {
-        int charWidth = getCharacterWidth7x7(text2[i]);
-        drawCharacter7x7(text2[i], currentX, 8, color);  // Y = 8 for bottom row
-        currentX += charWidth + 1;
+        // Render Bottom Row (Lower 7 Strips)
+        currentX = bottomX;
+        for (int i = 0; i < bottomLen; i++)
+        {
+          int charWidth = getCharacterWidth7x7(text2[i]);
+          drawCharacter7x7(text2[i], currentX, 8, color);  // Y = 8 for bottom row
+          currentX += charWidth + 1;
+        }
       }
     }
 
