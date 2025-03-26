@@ -1,83 +1,82 @@
 #include "Timer.h"
+#include <Arduino.h> // Required for millis()
+#include <Wire.h>
 #include "Display.h"
-#include <RTClib.h>
 
-Timer* Timer::instance = nullptr;
-
-
-// Singleton accessor
-Timer& Timer::getInstance()
-{
-  if (instance == nullptr)
-  {
-    instance = new Timer();
-  }
-
-  return *instance;
+// Constructor
+Timer::Timer() : rtc() {
+ 
 }
 
-Timer::Timer() :previousMillis(0), timerActive(false), timerPaused(false), targetTime(""), remainingTime(0)
+void Timer::setupRTC()
 {
+  if (!rtc.begin()) {
+        Serial.println("Couldn't find RTC");
+        while (1); // freeze the program
+    }
+
+    if (rtc.lostPower()) {
+        Serial.println("RTC lost power, setting time!");
+        rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));  // syncs with PC compile time
+    }
 }
 
-void Timer::set(int minutes, int seconds)
-{
-    timerActive = false;
-
-    char timeString[6];
-    sprintf(timeString, "%02d+:%02d", minutes, seconds);
-    Display::getInstance().displayText(timeString, "", "statc", "f");
-    Serial.print("Timer Set: ");
-    Serial.println(timeString);
-}
-
-void Timer::start(int minutes, int seconds) {
+void Timer::startTimer(int minutes, int seconds) {
     remainingTime = TimeSpan(0, 0, minutes, seconds);
     targetTime = rtc.now() + remainingTime;
     timerActive = true;
     timerPaused = false;
 }
 
-void Timer::pause() {
+void Timer::pauseTimer() {
     if (timerActive && !timerPaused) {
         remainingTime = targetTime - rtc.now();
         timerPaused = true;
     }
 }
 
-void Timer::resume() {
+void Timer::resumeTimer() {
     if (timerActive && timerPaused) {
         targetTime = rtc.now() + remainingTime;
         timerPaused = false;
     }
 }
 
-void Timer::stop() {
+void Timer::stopTimer() {
     timerActive = false;
     timerPaused = false;
-    Display::getInstance().displayText("STOP", "", "STATIC", "CENTER");
+    Display::getInstance().displayText("STOP", "", "statc", "yes");
 }
 
-
-void Timer::update() {
+void Timer::updateTimer() {
     if (!timerActive || timerPaused) return;
+    
 
-    if (millis() - previousMillis >= 1000) {
+    if (millis() - lastUpdateMillis >= 1000) {
         DateTime now = rtc.now();
         TimeSpan remaining = targetTime - now;
-        Serial.println(targetTime.timestamp());
+        Serial.println(remaining.minutes());
+        Serial.println(remaining.totalseconds());
+        Serial.println(targetTime.secondstime());
         Serial.println(now.timestamp());
-        Serial.println(remainingTime.totalseconds());
+        
 
         if (remaining.totalseconds() <= 0) {
-            Display::getInstance().displayText("0:00", "", "statc", "f");
+            Display::getInstance().displayText("0:00", "", "statc", "yes");
             timerActive = false;
         } else {
-            char text[6];
-            sprintf(text, "%d:%02d", remaining.minutes(), remaining.seconds());
-            Display::getInstance().displayText(text, "", "statc", "f");
+          int mins = max(0, remaining.minutes());
+          int secs = max(0, remaining.seconds());
+          char text[8];
+          sprintf(text, "%d:%02d", mins, secs);
+          timeText = text;
         }
 
-        previousMillis = millis();
+        lastUpdateMillis = millis();
     }
+}
+
+char* Timer::getTimeText()
+{
+  return timeText;
 }

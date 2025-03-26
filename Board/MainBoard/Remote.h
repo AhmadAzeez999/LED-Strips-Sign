@@ -10,6 +10,7 @@ private:
     bool remoteStatus;
     unsigned int enteredValue;
     bool inputState;
+    int minu;
     uint32_t colorCodes[3] = {0x0000ff, 0xff0000, 0x00ff00};
     uint32_t timerCodes[10] = {0xFB040707, 0xFA050707, 0xF9060707, 0xF7080707, 0xF6090707,
                                 0xF50A0707, 0xF30C0707, 0xF20D0707, 0xF10E0707, 0xEE110707};

@@ -19,6 +19,7 @@ class Display
 private:
   // Singleton instance
   static Display* instance;
+  Adafruit_NeoPixel strips[NUM_STRIPS];
   
   // Private constructor for singleton pattern
   Display();
@@ -37,8 +38,9 @@ private:
   void drawCharacter15x15(char c, int x, int y, uint32_t color);
 public:
   // Singleton accessor
+  
   static Display& getInstance();
-  Adafruit_NeoPixel strips[NUM_STRIPS];
+  
   
   // Delete copy constructor and assignment operator
   Display(const Display&) = delete;

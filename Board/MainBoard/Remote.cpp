@@ -3,12 +3,13 @@
 #include "Remote.h"
 #include "Timer.h"
 
+extern RTC_DS3231 rtc;
 Timer timers;
 
 
 #define IR_PIN 10
 
-    RemoteControl::RemoteControl() : bright(4), remoteStatus(false), enteredValue(0), inputState(false) {}
+    RemoteControl::RemoteControl() : bright(4), remoteStatus(false), enteredValue(0), inputState(false), minu(0) {}
 
     void RemoteControl::setupRemote() {
         IrReceiver.begin(IR_PIN, ENABLE_LED_FEEDBACK);
@@ -38,7 +39,7 @@ Timer timers;
             
             Display::getInstance().updateLEDs(true);
             for (int x = 0; x < NUM_STRIPS; x++) {
-                Display::getInstance().strips[x].setBrightness(bright);
+                Display::getInstance().setBrightness(bright);
             }
         }
     }
@@ -55,17 +56,16 @@ Timer timers;
     }
 
     void RemoteControl::handleTimerCodes(uint32_t remoteCode) {
-      int minu = 0;
-      int sec = 0;
         for (uint8_t i = 0; i < 10; i++) {
             if (remoteCode == timerCodes[i]) {
-                timers.set(i + 1, 0);
+                timers.startTimer(i + 1, 0);
                 minu = i + 1;
                 break;
             }
         }
         if (remoteCode == 0x97680707) {
-                    timers.start(minu, sec);
+          Serial.println(minu);
+                    //timers.start(minu, 0);
                 }
     }
 
@@ -137,7 +137,7 @@ Timer timers;
             //delay(500);
             IrReceiver.resume();
         }
-        timers.update();
+        timers.updateTimer();
     }
 
     uint8_t RemoteControl::getBrightness()

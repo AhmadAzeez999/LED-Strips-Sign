@@ -4,9 +4,7 @@
 #include <RTClib.h>
 #include "Remote.h"
 
-
-RTC_DS3231 rtc;  // Global RTC instance
-DateTime timerEnd;
+ // Global RTC instance
 bool useBigFont = true;  // Toggle between 7x7 and 15x15 font sizes
 Timer timer;
 RemoteControl remote; // Global remote variable
@@ -26,12 +24,15 @@ uint8_t charCount = 0;
 bool dataToSend = false;
 
 Display& display = Display::getInstance();
+//Display d;
 
 void setup()
 {
   Serial.begin(9600);
   display.setup(4);
   remote.setupRemote();
+   timer.setupRTC();
+  timer.startTimer(5, 0);
 }
 
 void loop()
@@ -44,11 +45,16 @@ void loop()
   }
 
   remote.useRemote();
+  timer.updateTimer();
+
 
   // static bool timerActive = false;  // Track if timer has started
+  char* asd = timer.getTimeText();
 
-  // Display::getInstance().displayText("Yo", "", "scroll", "", true);
+ //Display::getInstance().displayText(asd, "", "statc", "yes");
+ //Display::getInstance().updateLEDs(true);
 
+  
   // timer.countdown(3, 5, true);
 }
 

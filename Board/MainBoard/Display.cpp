@@ -69,6 +69,7 @@ void Display::clearBuffer(bool bigFont)
 // Update LEDs from Buffer
 void Display::updateLEDs(bool bigFont)
 {
+
   for (int i = 0; i < NUM_STRIPS; i++)
   {
     for (int j = 0; j < NUMPIXELS; j++)
@@ -77,6 +78,7 @@ void Display::updateLEDs(bool bigFont)
     }
     strips[i].show();
   }
+
 }
 
 void Display::setPixel(int x, int y, uint32_t color)
@@ -234,6 +236,9 @@ void Display::displayText(const char* text1, const char* text2, const char* comm
       totalWidth += 1;  // Add small spacing between characters
     }
 
+    unsigned long previousMillis = 0;
+int shift = -NUMPIXELS;
+
     for (int shift = -NUMPIXELS; shift < totalWidth; shift++)
     {
       clearBuffer(useBigFont);
@@ -252,7 +257,7 @@ void Display::displayText(const char* text1, const char* text2, const char* comm
       delay(speed);
     }
   }
-  else if (strcmp(command, "statc") == 0)
+  if (strcmp(command, "statc") == 0)
   {
     if (useBigFont)
     {
