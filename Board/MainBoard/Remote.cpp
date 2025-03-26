@@ -55,15 +55,17 @@ Timer timers;
     }
 
     void RemoteControl::handleTimerCodes(uint32_t remoteCode) {
+      int minu = 0;
+      int sec = 0;
         for (uint8_t i = 0; i < 10; i++) {
             if (remoteCode == timerCodes[i]) {
                 timers.set(i + 1, 0);
+                minu = i + 1;
                 break;
             }
         }
         if (remoteCode == 0x97680707) {
-                    timers.start();
-                    Serial.println("YES");
+                    timers.start(minu, sec);
                 }
     }
 
@@ -73,7 +75,6 @@ Timer timers;
       {
         //displayDefaultMessage();
         //Timer::getInstance().set(1, 0);
-        Timer::getInstance().setMin(5);
       }
     }
 

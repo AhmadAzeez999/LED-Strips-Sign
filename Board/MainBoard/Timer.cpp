@@ -1,5 +1,6 @@
 #include "Timer.h"
 #include "Display.h"
+#include <RTClib.h>
 
 Timer* Timer::instance = nullptr;
 
@@ -15,117 +16,68 @@ Timer& Timer::getInstance()
   return *instance;
 }
 
-Timer::Timer() : isTimerRunning(false), previousMillis(0), sec(0), minu(0)
+Timer::Timer() :previousMillis(0), timerActive(false), timerPaused(false), targetTime(""), remainingTime(0)
 {
-}
-
-
-
-int Timer::getMin()
-{
-  return minu;
-}
-
-void Timer::setMin(int minutes)
-{
-  Serial.print("Before Assignment: ");
-  Serial.println(minu);
-  minu = minutes;
-  Serial.print("After Assignment: ");
-  Serial.println(minu);
-}
-
-int Timer::getSec()
-{
-  return sec;
-}
-
-void Timer::setSec(int seconds)
-{
-  sec = seconds;
 }
 
 void Timer::set(int minutes, int seconds)
 {
-    sec = minutes * 60;
-    
-    isTimerRunning = false;
-
-    //DateTime now = rtc.now();
-    //timerEnd = now + TimeSpan(0, 0, minutes, seconds);
-
-    Serial.println(minu);
+    timerActive = false;
 
     char timeString[6];
     sprintf(timeString, "%02d+:%02d", minutes, seconds);
-    Display::getInstance().displayText(timeString, "", "STATIC", "CENTER");
-    setMin(minutes);
+    Display::getInstance().displayText(timeString, "", "statc", "f");
     Serial.print("Timer Set: ");
     Serial.println(timeString);
-    Serial.println(minu);
 }
 
-void Timer::start()
-{
-    isTimerRunning = true;
-    Serial.println("Timer Started!");
-    Serial.println(minu);
+void Timer::start(int minutes, int seconds) {
+    remainingTime = TimeSpan(0, 0, minutes, seconds);
+    targetTime = rtc.now() + remainingTime;
+    timerActive = true;
+    timerPaused = false;
 }
 
-void Timer::pause()
-{
-    isTimerRunning = false;
-    Serial.println("Timer Paused!");
-}
-
-bool Timer::isRunning() const
-{
-    return isTimerRunning;
-}
-
-void Timer::update()
-{
-   if (!isTimerRunning) return;
-   
-   unsigned long currentMillis = millis();
-    if (currentMillis - previousMillis >= 1000)
-    {
-      previousMillis = currentMillis;
-
-      unsigned int remainingSec = (sec - 1) % 60;
-      unsigned int remainingMin = minu - 1;
-
-
-      sec--;
-      
-      if(remainingSec == 0)
-      {
-        remainingMin--;
-        minu--;
-      }
-
-      char timeString[6];
-      sprintf(timeString, "%02d+:%02d", remainingMin,remainingSec);
-      Display::getInstance().displayText(timeString, "", "statc", "f");
-
-      Serial.println(remainingMin);
-      Serial.println(remainingSec);
-      if(remainingSec == 0 && remainingMin == 0)
-      {
-        isTimerRunning = false;
-      }
+void Timer::pause() {
+    if (timerActive && !timerPaused) {
+        remainingTime = targetTime - rtc.now();
+        timerPaused = true;
     }
-    //Serial.println(currentMillis);
-
-   
 }
 
-void Timer::countdown(int minutes, int seconds, bool startImmediately)
-{
-    set(minutes, seconds);
+void Timer::resume() {
+    if (timerActive && timerPaused) {
+        targetTime = rtc.now() + remainingTime;
+        timerPaused = false;
+    }
+}
 
-    if (startImmediately)
-    {
-        start();
+void Timer::stop() {
+    timerActive = false;
+    timerPaused = false;
+    Display::getInstance().displayText("STOP", "", "STATIC", "CENTER");
+}
+
+
+void Timer::update() {
+    if (!timerActive || timerPaused) return;
+
+    if (millis() - previousMillis >= 1000) {
+        DateTime now = rtc.now();
+        TimeSpan remaining = targetTime - now;
+        Serial.println(targetTime.timestamp());
+        Serial.println(now.timestamp());
+        Serial.println(remainingTime.totalseconds());
+
+        if (remaining.totalseconds() <= 0) {
+            Display::getInstance().displayText("0:00", "", "statc", "f");
+            timerActive = false;
+        } else {
+            char text[6];
+            sprintf(text, "%d:%02d", remaining.minutes(), remaining.seconds());
+            Display::getInstance().displayText(text, "", "statc", "f");
+        }
+
+        previousMillis = millis();
     }
 }
