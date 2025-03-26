@@ -1,0 +1,175 @@
+$url = "http://127.0.0.1:8080/";
+$http = [System.Net.HttpListener]::new();
+$http.Prefixes.Add($url);
+$http.Start();
+
+# Serial port setup 
+$enteredPort = Read-Host "Enter Comm PORT"
+$signPort = "COM $enteredPort"
+$baudRate = Read-Host "Enter Baud Rate"
+
+
+# $out_port_a = new-Object System.IO.Ports.SerialPort $signPort,$baudRate,None,8,one
+# $out_port_a.open() 
+
+# Log ready message to terminal
+if ($http.IsListening)
+{
+    write-host "Connected to the Scoreboard!"
+    write-host "Please Minimize this Window!"
+}
+
+# Helper functions
+function send_display($data)
+{
+    # Uncomment this line when ready to use actual serial port
+    # $out_port_a.WriteLine($data)
+    write-host($data)
+}
+
+function pad-text($value)
+{
+    # Default command
+    $cmd = ""
+    # Default screen display type (t - top)
+    $display = "t"
+    write-host($value.command)
+    
+    # Handling the different commands
+    switch ($value.command)
+    {
+        'scroll'
+        { 
+            $cmd = "scroll"
+        }
+        'pause'
+        { 
+            $cmd = "pause"
+        }
+        'static'
+        { 
+            $cmd = "static"
+        }
+        'startTimer'
+        {
+            $cmd = "startTimer"
+        }
+        'pauseTimer'
+        {
+            $cmd = "pauseTimer"
+        }
+        'resettimer'
+        {
+            $cmd = "resettimer"
+        }
+        ''
+        default
+        {
+            $cmd = "static"
+        }
+    }
+    
+    # Handling the different screen display types
+    switch ($value.display)
+    {
+        't'
+        {
+            $display = "t"
+        }
+        'b'
+        {
+            $display = "b"
+        }
+        'f'
+        {
+            $display = "f"
+        }
+        default
+        {
+            $display = "t"
+        }
+    }
+    
+    # "$" is a separator
+    $returnValue = "$" + $cmd + "$" + $display + "[" + $value.data + "]"
+    
+    return $returnValue
+}
+
+# Function to add CORS headers to response
+function Add-CorsHeaders($response)
+{
+    $response.AppendHeader("Access-Control-Allow-Origin", "*")
+    $response.AppendHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+    $response.AppendHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With")
+    $response.AppendHeader("Access-Control-Max-Age", "86400")
+}
+
+# Main loop
+while ($http.IsListening)
+{
+    $context = $http.GetContext()
+    
+    # Handle preflight OPTIONS requests
+    if ($context.Request.HttpMethod -eq 'OPTIONS')
+    {
+        # Add CORS headers to response
+        Add-CorsHeaders -response $context.Response
+        
+        # Send empty response for OPTIONS requests
+        $context.Response.StatusCode = 200
+        $buffer = [System.Text.Encoding]::UTF8.GetBytes("")
+        $context.Response.ContentLength64 = $buffer.Length
+        $context.Response.OutputStream.Write($buffer, 0, $buffer.Length)
+        $context.Response.OutputStream.Close()
+        continue
+    }
+    
+    # Handle POST requests to /dashboard/post
+    if ($context.Request.HttpMethod -eq 'POST' -and $context.Request.RawUrl -eq '/dashboard/post')
+    {
+        $FormContent = [System.IO.StreamReader]::new($context.Request.InputStream).ReadToEnd()
+        $dataToSend = $FormContent | ConvertFrom-Json
+        
+        if ($dataToSend.command -eq 'postRaw')
+        {
+            send_display($dataToSend.data)
+        }
+        else
+        {
+            $formattedData = pad-text($dataToSend)
+            send_display($formattedData)
+        }
+        
+        # Add CORS headers to response
+        # Add-CorsHeaders -response $context.Response
+        
+        # Send success response
+        $context.Response.StatusCode = 200
+        $buffer = [System.Text.Encoding]::UTF8.GetBytes("Success")
+        $context.Response.ContentLength64 = $buffer.Length
+        $context.Response.OutputStream.Write($buffer, 0, $buffer.Length)
+        $context.Response.OutputStream.Close()
+        continue
+    }
+    
+    # Handle GET requests
+    if ($context.Request.HttpMethod -eq 'POST' -and $context.Request.RawUrl -eq '/kill')
+    {
+        # Add CORS headers to all responses
+        # Add-CorsHeaders -response $context.Response
+        $context.Response.StatusCode = 200
+        $buffer = [System.Text.Encoding]::UTF8.GetBytes("Server shutting down")
+        $context.Response.ContentLength64 = $buffer.Length
+        $context.Response.OutputStream.Write($buffer, 0, $buffer.Length)
+        $context.Response.OutputStream.Close()
+        $http.Stop()
+        
+        # Default response for other GET requests
+        $context.Response.StatusCode = 200
+        $buffer = [System.Text.Encoding]::UTF8.GetBytes("Server is running")
+        $context.Response.ContentLength64 = $buffer.Length
+        $context.Response.OutputStream.Write($buffer, 0, $buffer.Length)
+        $context.Response.OutputStream.Close()
+    }
+}

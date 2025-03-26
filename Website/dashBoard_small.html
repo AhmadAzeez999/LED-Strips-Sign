@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K3 Scoreboard Control</title>
+	<link rel="stylesheet" href="./css/style.css">
+    <script src="./scripts/dashBoard_small.js"></script>
+    <script src="./scripts/validator.js"></script>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <h1>K3 Matrix Board</h1>
+        </div>
+        <nav class="navbar">
+            <ul>
+                <li><a href="dashBoard_small.html" class="active">Text Input</a></li>
+                <li><a href="Pages\time.html">Timer</a></li>
+                <li><a href="Pages\custom.html">Custom</a></li>
+                <li><a href="Pages\settings.html">Settings</a></li>
+            </ul>
+        </nav>
+    </div>
+    
+    <div class="main-content">
+        <div class="content-header">
+            <h1>Text Input</h1>
+            <p>Configure and display messages on the scoreboard</p>
+        </div>
+        
+        <div class="control-panel">
+            <input type="text" class="message-input" placeholder="Enter the message here" id="message">
+            <p id="char-count">0/8</p>
+
+            <div class="options-panel">
+                <div class="option-group">
+                    <label>How should it be displayed?</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" name="display" value="t" id="top">
+                            <label for="top">Top</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="display" value="b" id="bottom">
+                            <label for="bottom">Bottom</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="display" value="f" id="full" checked>
+                            <label for="full">Full Screen</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="option-group">
+                    <label>Animation style:</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" name="animation" value="statc" id="static" checked>
+                            <label for="static">Static</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="animation" value="scroll" id="scroll">
+                            <label for="scroll">Scroll</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="animation" value="pause" id="pause">
+                            <label for="pause">Pause</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="buttons-container">
+                <button onclick="sendMessage()" class="button button-primary">Display Message</button>
+                <button onclick="killServer()" class="button button-secondary">Stop Server</button>
+            </div>
+        </div>
+    </div>
+    
+
+</body>
+</html>
