@@ -258,6 +258,16 @@ body
     background-color: var(--secondary-hover);
 }
 
+.with-top-bottom
+{
+    display: none;
+}
+
+.with-top-bottom.show
+{
+    display: block;
+}
+
 @media (max-width: 992px) 
 {
     .sidebar 

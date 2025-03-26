@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', function()
     const colorPicker = document.getElementById('colorPicker');
     const eraserBtn = document.getElementById('eraserBtn');
     const clearBtn = document.getElementById('clearBtn');
-    const invertBtn = document.getElementById('invertBtn');
     const sendBtn = document.getElementById('sendBtn');
     
     let currentColor = '#000000';

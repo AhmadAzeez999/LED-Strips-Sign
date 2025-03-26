@@ -10,7 +10,9 @@
 #define NUM_STRIPS 15
 
 // Colour variable
-extern uint32_t currentColourHex;
+extern uint32_t currentTopColourHex;
+extern uint32_t currentBottomColourHex;
+extern uint32_t currentFullColourHex;
 
 class Display
 {
@@ -49,12 +51,19 @@ public:
   void clearBuffer(bool bigFont);
   void updateLEDs(bool bigFont);
   void setPixel(int x, int y, uint32_t color);
+
+  void setBrightness(int brightness);
   
   // Text display methods
   void displayText(const char* text1, const char* text2, const char* command, const char* displayType);
 
   // Colour management
-  void changeColour(const int scheme);
+  void setTopColour(const uint32_t colourHex);
+  void setBottomColour(const uint32_t colourHex);
+  void setFullColour(const uint32_t colourHex);
+
+  // For custom drawings
+  void displayCustomPixels(String text1);
 };
 
 #endif // DISPLAY_H
