@@ -10,7 +10,7 @@ Timer::Timer() : rtc() {
 
 void Timer::setupRTC()
 {
-  if (!rtc.begin()) {
+   if (!rtc.begin()) {
         Serial.println("Couldn't find RTC");
         while (1); // freeze the program
     }
@@ -26,6 +26,7 @@ void Timer::startTimer(int minutes, int seconds) {
     targetTime = rtc.now() + remainingTime;
     timerActive = true;
     timerPaused = false;
+    Serial.println(rtc.now().timestamp());
 }
 
 void Timer::pauseTimer() {
@@ -68,7 +69,7 @@ void Timer::updateTimer() {
           int mins = max(0, remaining.minutes());
           int secs = max(0, remaining.seconds());
           char text[8];
-          sprintf(text, "%d:%02d", mins, secs);
+          sprintf(text, "%d+:%02d", mins, secs);
           Display::getInstance().displayText(text, "", "statc", "yes");
         }
 

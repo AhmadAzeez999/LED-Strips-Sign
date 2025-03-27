@@ -3,7 +3,6 @@
 #include "Remote.h"
 #include "Timer.h"
 
-extern RTC_DS3231 rtc;
 Timer timers;
 
 
@@ -12,6 +11,7 @@ Timer timers;
     RemoteControl::RemoteControl() : bright(4), remoteStatus(false), enteredValue(0), inputState(false), minu(0) {}
 
     void RemoteControl::setupRemote() {
+        timers.setupRTC();
         IrReceiver.begin(IR_PIN, ENABLE_LED_FEEDBACK);
     }
 
@@ -49,23 +49,25 @@ Timer timers;
             remoteStatus = !remoteStatus;
             Display::getInstance().clearBuffer(true);
             Serial.println(remoteStatus ? "RM ON" : "RM OFF");
-            Display::getInstance().displayText(remoteStatus ? "RMON" : "RMOFF", "", "statc", "f");
+            Display::getInstance().displayText(remoteStatus ? "RMON" : "RMOFF", "", "statc", "yes");
             Display::getInstance().updateLEDs(true);
             delay(500);
         }
     }
 
     void RemoteControl::handleTimerCodes(uint32_t remoteCode) {
+      char text[8];
         for (uint8_t i = 0; i < 10; i++) {
             if (remoteCode == timerCodes[i]) {
-                timers.startTimer(i + 1, 0);
-                minu = i + 1;
+                sprintf(text, "%d+:%02d", i+1, 0);
+                Display::getInstance().displayText(text, "", "statc", "yes");
+                minu = i+1;
                 break;
             }
         }
         if (remoteCode == 0x97680707) {
           Serial.println(minu);
-                    //timers.start(minu, 0);
+                    timers.startTimer(minu, 0);
                 }
     }
 
@@ -79,7 +81,9 @@ Timer timers;
     }
 
     void RemoteControl::useRemote() {
-      unsigned long currentMillis = millis();
+      //timers.startTimer(5, 0);
+      timers.updateTimer();
+      
         if (IrReceiver.decode()) {
             uint32_t remoteCode = IrReceiver.decodedIRData.decodedRawData;
             Serial.print("Raw Hex Code: ");
@@ -137,7 +141,7 @@ Timer timers;
             //delay(500);
             IrReceiver.resume();
         }
-        timers.updateTimer();
+        
     }
 
     uint8_t RemoteControl::getBrightness()
