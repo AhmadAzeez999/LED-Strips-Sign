@@ -1,4 +1,4 @@
-# Matrix Scoreboard
+# LED Strips Scrolling Sign
 
 ## Overview
 The Matrix Scoreboard is a **web and remote-controlled scoreboard** powered by an **Arduino Mega**. It can display text and time, with a web interface for easy control and customization.
