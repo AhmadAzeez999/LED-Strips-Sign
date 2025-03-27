@@ -43,6 +43,17 @@ void Timer::resumeTimer() {
     }
 }
 
+void Timer::resetTimer(int minutes, int seconds)
+{
+  if (timerActive)
+  {
+    remainingTime = TimeSpan(0, 0, minutes, seconds);
+    targetTime = rtc.now() + remainingTime;
+    timerActive = true;
+    timerPaused = false;
+  }
+}
+
 void Timer::stopTimer() {
     timerActive = false;
     timerPaused = false;
@@ -80,4 +91,9 @@ void Timer::updateTimer() {
 bool Timer::getTimerRunning()
 {
   return timerActive;
+}
+
+bool Timer::getTimerPaused()
+{
+  return timerPaused;
 }

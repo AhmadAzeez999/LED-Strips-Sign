@@ -11,7 +11,9 @@ public:
     void pauseTimer();
     void resumeTimer();
     void stopTimer();
+    void resetTimer(int minutes, int seconds);
     bool getTimerRunning();
+    bool getTimerPaused();
     void updateTimer();
 
 private:

@@ -68,9 +68,25 @@ Timer timers;
             }
         }
       }
-      if (remoteCode == 0x97680707) {
+      if (remoteCode == 0x97680707 && timers.getTimerRunning() == false) {
           Serial.println(minu);
                     timers.startTimer(minu, 0);
+                }
+                else if(remoteCode == 0xB9460707 && timers.getTimerRunning() == true)
+                {
+                  timers.stopTimer();
+                  minu = 0;
+                }
+                else if(remoteCode == 0xB8470707 && timers.getTimerPaused() == true)
+                {
+                  timers.resumeTimer();
+                }
+                else if(remoteCode == 0xB54A0707 && timers.getTimerPaused() == false)
+                {
+                  timers.pauseTimer();
+                }
+                else if (remoteCode == 0x97680707 && timers.getTimerRunning() == true) {
+                    timers.resetTimer(minu, 0);
                 }
     }
 
