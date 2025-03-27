@@ -29,9 +29,9 @@ Display& display = Display::getInstance();
 void setup()
 {
   Serial.begin(9600);
+  timer.setupRTC();
   display.setup(4);
   remote.setupRemote();
-   timer.setupRTC();
   timer.startTimer(5, 0);
 }
 
@@ -46,16 +46,6 @@ void loop()
 
   remote.useRemote();
   timer.updateTimer();
-
-
-  // static bool timerActive = false;  // Track if timer has started
-  char* asd = timer.getTimeText();
-
- //Display::getInstance().displayText(asd, "", "statc", "yes");
- //Display::getInstance().updateLEDs(true);
-
-  
-  // timer.countdown(3, 5, true);
 }
 
 void parseInput(String input)

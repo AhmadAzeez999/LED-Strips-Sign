@@ -69,14 +69,9 @@ void Timer::updateTimer() {
           int secs = max(0, remaining.seconds());
           char text[8];
           sprintf(text, "%d:%02d", mins, secs);
-          timeText = text;
+          Display::getInstance().displayText(text, "", "statc", "yes");
         }
 
         lastUpdateMillis = millis();
     }
-}
-
-char* Timer::getTimeText()
-{
-  return timeText;
 }
