@@ -57,6 +57,8 @@ Timer timers;
 
     void RemoteControl::handleTimerCodes(uint32_t remoteCode) {
       char text[8];
+      if(timers.getTimerRunning() == false)
+      {
         for (uint8_t i = 0; i < 10; i++) {
             if (remoteCode == timerCodes[i]) {
                 sprintf(text, "%d+:%02d", i+1, 0);
@@ -65,7 +67,8 @@ Timer timers;
                 break;
             }
         }
-        if (remoteCode == 0x97680707) {
+      }
+      if (remoteCode == 0x97680707) {
           Serial.println(minu);
                     timers.startTimer(minu, 0);
                 }

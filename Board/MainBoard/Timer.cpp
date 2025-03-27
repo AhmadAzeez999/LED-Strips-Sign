@@ -76,3 +76,8 @@ void Timer::updateTimer() {
         lastUpdateMillis = millis();
     }
 }
+
+bool Timer::getTimerRunning()
+{
+  return timerActive;
+}
