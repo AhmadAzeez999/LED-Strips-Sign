@@ -17,7 +17,7 @@ Timer timers;
 
     void RemoteControl::displayDefaultMessage() {
         Display::getInstance().clearBuffer(true);
-        Display::getInstance().displayText("Athletics ", "","statc","t");
+        Display::getInstance().displayText("Athletics ", "","static","no");
         Display::getInstance().updateLEDs(false);
     }
 
@@ -26,15 +26,15 @@ Timer timers;
             bright += change;
             Display::getInstance().clearBuffer(true);
             if(bright == 10){
-              Display::getInstance().displayText("BrMax", "", "statc", "f");
+              Display::getInstance().displayText("BrMax", "", "static", "yes");
             }
             else if(bright == 1)
             {
-              Display::getInstance().displayText("BrMin", "", "statc", "f");
+              Display::getInstance().displayText("BrMin", "", "static", "yes");
             }
             else
             {
-              Display::getInstance().displayText(change > 0 ? "BrUp" : "BrDow", "", "statc", "f");
+              Display::getInstance().displayText(change > 0 ? "BrUp" : "BrDwn", "", "static", "yes");
             }
             
             Display::getInstance().updateLEDs(true);
@@ -49,7 +49,7 @@ Timer timers;
             remoteStatus = !remoteStatus;
             Display::getInstance().clearBuffer(true);
             Serial.println(remoteStatus ? "RM ON" : "RM OFF");
-            Display::getInstance().displayText(remoteStatus ? "RMON" : "RMOFF", "", "statc", "yes");
+            Display::getInstance().displayText(remoteStatus ? "RMON" : "RMOFF", "", "static", "yes");
             Display::getInstance().updateLEDs(true);
             delay(500);
         }
@@ -62,7 +62,7 @@ Timer timers;
         for (uint8_t i = 0; i < 10; i++) {
             if (remoteCode == timerCodes[i]) {
                 sprintf(text, "%d+:%02d", i+1, 0);
-                Display::getInstance().displayText(text, "", "statc", "yes");
+                Display::getInstance().displayText(text, "", "static", "yes");
                 minu = i+1;
                 break;
             }
@@ -78,13 +78,11 @@ Timer timers;
     {
       if(remoteCode == 0x86790707)
       {
-        //displayDefaultMessage();
-        //Timer::getInstance().set(1, 0);
+        displayDefaultMessage();
       }
     }
 
     void RemoteControl::useRemote() {
-      //timers.startTimer(5, 0);
       timers.updateTimer();
       
         if (IrReceiver.decode()) {
@@ -194,7 +192,7 @@ void RemoteControl::updateDisplay(int time) {
 
     char timeString[6];
     sprintf(timeString, "%02d:%02d", minutes, seconds);
-    Display::getInstance().displayText(timeString, "", "statc", "f");
+    Display::getInstance().displayText(timeString, "", "static", "yes");
 }
 
 

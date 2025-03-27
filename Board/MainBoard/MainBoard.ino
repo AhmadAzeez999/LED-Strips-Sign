@@ -156,5 +156,5 @@ void updateSettings(String input)
   display.setBottomColour(bottomColor);
   display.setFullColour(fullColor);
 
-  display.displayText("Done", "", "statc", "yes");
+  display.displayText("Done", "", "static", "yes");
 }

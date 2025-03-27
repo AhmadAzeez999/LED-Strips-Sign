@@ -46,7 +46,7 @@ void Timer::resumeTimer() {
 void Timer::stopTimer() {
     timerActive = false;
     timerPaused = false;
-    Display::getInstance().displayText("STOP", "", "statc", "yes");
+    Display::getInstance().displayText("STOP", "", "static", "yes");
 }
 
 void Timer::updateTimer() {
@@ -63,14 +63,14 @@ void Timer::updateTimer() {
         
 
         if (remaining.totalseconds() <= 0) {
-            Display::getInstance().displayText("0:00", "", "statc", "yes");
+            Display::getInstance().displayText("0:00", "", "static", "yes");
             timerActive = false;
         } else {
           int mins = max(0, remaining.minutes());
           int secs = max(0, remaining.seconds());
           char text[8];
           sprintf(text, "%d+:%02d", mins, secs);
-          Display::getInstance().displayText(text, "", "statc", "yes");
+          Display::getInstance().displayText(text, "", "static", "yes");
         }
 
         lastUpdateMillis = millis();

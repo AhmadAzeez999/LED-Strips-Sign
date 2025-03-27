@@ -49,7 +49,6 @@ void Display::setBrightness(int brightness)
   for (int i = 0; i < NUM_STRIPS; i++)
   {
     strips[i].setBrightness(brightness);
-    strips[i].show();
   }
 }
 
@@ -257,7 +256,7 @@ int shift = -NUMPIXELS;
       delay(speed);
     }
   }
-  if (strcmp(command, "statc") == 0)
+  if (strcmp(command, "static") == 0)
   {
     if (useBigFont)
     {
