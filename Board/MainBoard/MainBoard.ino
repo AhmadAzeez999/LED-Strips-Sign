@@ -6,7 +6,7 @@
 
 RTC_DS3231 rtc;// Global RTC instance
 bool useBigFont = true;  // Toggle between 7x7 and 15x15 font sizes
-Timer timer;
+Timer timer; 
 RemoteControl remote; // Global remote variable
 
 // Variables for parsing the received message
@@ -73,9 +73,21 @@ void parseInput(String input)
   {
     display.displayCustomPixels(input);
   }
-  else if (command == "settings")
+  else if (command == "settns")
   {
     updateSettings(input);
+  }
+  else if (command == "sTimer")
+  {
+    parseTimeInput(input);
+  }
+  else if (command == "pTimer")
+  {
+    timer.pauseTimer();
+  }
+  else if (command == "rTimer")
+  {
+    // timer.resetTimer();
   }
   else
   {
@@ -157,4 +169,38 @@ void updateSettings(String input)
   display.setFullColour(fullColor);
 
   display.displayText("Done", "", "static", "yes");
+}
+
+void parseTimeInput(String input)
+{
+  // Find brackets
+  int openBracket = input.indexOf('[');
+  int closeBracket = input.indexOf(']');
+  
+  // Check if brackets are valid
+  if (openBracket == -1 || closeBracket == -1 || openBracket >= closeBracket)
+  {
+    // Invalid input format
+    Serial.println("Error: Invalid time input format");
+    return;
+  }
+  
+  // Find the comma separating minutes and seconds
+  int commaIndex = input.indexOf(",", openBracket);
+  
+  // Check if comma is valid
+  if (commaIndex == -1 || commaIndex >= closeBracket)
+  {
+    Serial.println("Error: Invalid time input format");
+    return;
+  }
+  
+  String minStr = input.substring(openBracket + 1, commaIndex);
+  String secStr = input.substring(commaIndex + 1, closeBracket);
+  
+  int minutes = minStr.toInt();
+  int seconds = secStr.toInt();
+  
+  // Start timer with parsed minutes and seconds
+  timer.startTimer(minutes, seconds);
 }
