@@ -11,6 +11,10 @@ document.addEventListener('DOMContentLoaded', function()
     let isErasing = false;
     let drawnPixels = new Set();
 
+    // Prevent default drag and selection behaviors
+    pixelBoard.addEventListener('dragstart', (e) => e.preventDefault());
+    pixelBoard.style.userSelect = 'none';
+    pixelBoard.style.webkitUserSelect = 'none';
     
     // Create pixel board
     function createPixelBoard()
@@ -29,7 +33,12 @@ document.addEventListener('DOMContentLoaded', function()
             
                 pixel.style.backgroundColor = '#ffffff';
                 
-                pixel.addEventListener('mousedown', startDrawing);
+                // Prevent default drag behavior on each pixel
+                pixel.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    startDrawing(e);
+                });
+                
                 pixel.addEventListener('mouseover', draw);
                 pixel.addEventListener('touchstart', handleTouch);
                 pixel.addEventListener('touchmove', handleTouchMove);
@@ -38,40 +47,51 @@ document.addEventListener('DOMContentLoaded', function()
             }
         }
         
-        pixelBoard.addEventListener('mouseup', stopDrawing);  // This had document.listener
-        pixelBoard.addEventListener('touchend', stopDrawing); // This had document.listener
+        // Stop drawing when mouse leaves the board or mouse button is released
+        document.addEventListener('mouseup', stopDrawing);
+        document.addEventListener('mouseleave', stopDrawing);
+        document.addEventListener('touchend', stopDrawing);
     }
     
     function startDrawing(e)
     {
+        // Prevent default behavior and ensure it's left mouse button
+        e.preventDefault();
+        if (e.type === 'mousedown' && e.button !== 0) return;
+        
         isDrawing = true;
         draw(e);
     }
     
     function draw(e)
     {
+        // Only draw if mouse button is held down
         if (!isDrawing)
             return;
+        
         let pixel = e.target;
+        
+        // Ensure we're drawing on a pixel
+        if (!pixel.classList.contains('pixel')) return;
+        
         let row = pixel.dataset.row;
         let col = pixel.dataset.col;
-        let color = pixel.dataset.color;
         let prevColor = pixel.style.backgroundColor;
+        
         if (isErasing)
         {
-            e.target.style.backgroundColor = '#ffffff';
+            pixel.style.backgroundColor = '#ffffff';
             drawnPixels.delete(`(${row},${col},${prevColor})`);
         }
         else
         {
-            e.target.style.backgroundColor = currentColor;
+            pixel.style.backgroundColor = currentColor;
             if (currentColor === "#000000"){
-                drawnPixels.add(`(${row},${col},#ffffff)`); // If the current color of this pixel is black, you add it as white
+                drawnPixels.add(`(${row},${col},#ffffff)`);
             }
             else{
                 drawnPixels.add(`(${row},${col},${currentColor})`);
             }
-     
         }
     }
     
@@ -107,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function()
             {
                 pixel.style.backgroundColor = currentColor;
                 if (currentColor === "#000000"){
-                    drawnPixels.add(`(${row},${col},#ffffff)`); // If the current color of this pixel is black, you add it as white
+                    drawnPixels.add(`(${row},${col},#ffffff)`);
                 }
                 else{
                     drawnPixels.add(`(${row},${col},${currentColor})`);
@@ -149,24 +169,7 @@ document.addEventListener('DOMContentLoaded', function()
         drawnPixels.clear();
     });
     
-
-    // Older code to send all pairs at once
-    // sendBtn.addEventListener('click', async (e) => {
-    //     e.preventDefault();
-    //     sendBtn.disabled = true;
-    //     sendBtn.style.cursor = "not-allowed";
-    //     let f_list = Array.from(drawnPixels).join(',');
-    //     const resp =  await fetch(`${API_URL}/dashboard/post`,
-    //         {
-    //             method: 'POST',
-    //             headers: {"Content-Type": "application/json"},
-    //             body: JSON.stringify(
-    //             {
-    //                 "command": "custom",
-    //                 "data": f_list
-    //             })
-    //     });
-    
+    // Send button functionality (unchanged from original)
     sendBtn.addEventListener('click', async (e) => {
         e.preventDefault();
         sendBtn.disabled = true;
@@ -226,10 +229,8 @@ document.addEventListener('DOMContentLoaded', function()
             }, 5000);
 
         }
-
-        
     });
+    
     // Initialize board
     createPixelBoard();
-
 });
