@@ -338,54 +338,63 @@ void Display::setFullColour(const uint32_t colourHex)
   currentFullColourHex = colourHex;
 }
 
-void Display::displayCustomPixels(String input)
+void Display::displayCustomPixels(String input, String chunckPos)
 {
   // Find the opening and closing brackets
   int openBracket = input.indexOf('[');
   int closeBracket = input.indexOf(']');
-  
+ 
   // Extract the coordinates string
   String coordString = input.substring(openBracket + 1, closeBracket);
-  
+
+  Serial.print(chunckPos);
+ 
   // Clear the display first
-  clearBuffer(true);
-  
+  if (chunckPos == "start")
+  {
+    clearBuffer(true);
+  }
+ 
   // Parse the coordinates
   int startIndex = 0;
   int endIndex = 0;
-  
+ 
   while (startIndex < coordString.length())
   {
-    clearBuffer(true);
-
     // Find the next coordinate pair
     endIndex = coordString.indexOf(')', startIndex);
-    
+   
     if (endIndex == -1)
       break;
-    
+   
     // Extract the coordinate pair
     String coordPair = coordString.substring(startIndex, endIndex + 1);
-    
-    // Remove parentheses and split x and y
+   
+    // Remove parentheses
     coordPair.replace("(", "");
     coordPair.replace(")", "");
-    
-    int commaIndex = coordPair.indexOf(',');
-    
-    if (commaIndex != -1)
+   
+    // Split the coordinate pair into x, y, and color
+    int firstCommaIndex = coordPair.indexOf(',');
+    int secondCommaIndex = coordPair.indexOf(',', firstCommaIndex + 1);
+   
+    if (firstCommaIndex != -1 && secondCommaIndex != -1)
     {
-      int x = coordPair.substring(0, commaIndex).toInt();
-      int y = coordPair.substring(commaIndex + 1).toInt();
+      int x = coordPair.substring(0, firstCommaIndex).toInt();
+      int y = coordPair.substring(firstCommaIndex + 1, secondCommaIndex).toInt();
       
-      // Set the pixel
-      setPixel(y, x, 0xFF0000);  // Red color
+      // Parse color (assuming hex color format like FF0000 for red)
+      String colourStr = coordPair.substring(secondCommaIndex + 1);
+      colourStr.replace("#", "0x");
+      unsigned long colour = strtoul(colourStr.c_str(), NULL, 16);
+      
+      // Set the pixel with parsed color
+      setPixel(y, x, colour);
     }
-    
+   
     // Move to next coordinate
     startIndex = endIndex + 2;
   }
-
   // Update LED
   updateLEDs(true);
 }
