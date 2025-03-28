@@ -84,7 +84,7 @@ async function start_timer()
 
     if(sflag)
 		{
-		const message = minutes + ":" + seconds;
+		const message = minutes + "," + seconds;
 		s_timer.disabled = true;
 		const response = await fetch(`${API_URL}/dashboard/post`,
 			{
@@ -160,11 +160,6 @@ async function reset_timer()
 async function display_time()
 {
 	let d_time = document.getElementById("timeOfDayBtn");
-	const currentTime = new Intl.DateTimeFormat('en-US', {
-		hour: 'numeric',
-		minute: 'numeric',
-		hour12: true
-	  }).format(new Date());
     d_time.disabled = true;
 	const response = await fetch(`${API_URL}/dashboard/post`,
 		{
@@ -172,9 +167,7 @@ async function display_time()
 			headers: {"Content-Type": "application/json"},
 			body: JSON.stringify(
 			{
-				"command": "dTimer",
-				"isBig": "yes",
-				"data": currentTime.toString()
+				"command": "dot"
 			})
 		});
 

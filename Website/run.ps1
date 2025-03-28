@@ -5,12 +5,12 @@ $http.Start();
 
 # Serial port setup 
 $enteredPort = Read-Host "Enter Comm PORT"
-$signPort = "COM $enteredPort"
+$signPort = "COM$enteredPort"
 $baudRate = Read-Host "Enter Baud Rate"
 
 
-# $out_port_a = new-Object System.IO.Ports.SerialPort $signPort,$baudRate,None,8,one
-# $out_port_a.open() 
+$out_port_a = new-Object System.IO.Ports.SerialPort $signPort,$baudRate,None,8,one
+$out_port_a.open()
 
 # Log ready message to terminal
 if ($http.IsListening) 
@@ -24,7 +24,7 @@ function send_display($data)
 
 {
     # Uncomment this line when ready to use actual serial port
-    # $out_port_a.WriteLine($data)
+    $out_port_a.WriteLine($data)
     write-host($data)
 }
 
@@ -41,7 +41,7 @@ function pad-text($value)
         return "$" + $value.command + "$" +  "[" + $value.brightness + ", " +  $value.tcolor + ", " +  $value.bcolor + ", " + $value.fcolor + "]"
     }
     elseif($value.command -eq "custom"){
-        return "$" + $value.command + "$" +  "[" + $value.data + "]"
+        return "$" + $value.command + "$" + $value.param + "[" + $value.data + "]"
     }
     else{
         return "$" + $value.command + "$" + $value.isBig + "[" + $value.data + "]"
