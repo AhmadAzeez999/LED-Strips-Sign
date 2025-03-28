@@ -13,22 +13,19 @@ $baudRate = Read-Host "Enter Baud Rate"
 # $out_port_a.open() 
 
 # Log ready message to terminal
-if ($http.IsListening)
-{
+if ($http.IsListening) {
     write-host "Connected to the Scoreboard!"
     write-host "Please Minimize this Window!"
 }
 
 # Helper functions
-function send_display($data)
-{
+function send_display($data) {
     # Uncomment this line when ready to use actual serial port
     # $out_port_a.WriteLine($data)
     write-host($data)
 }
 
-function pad-text($value)
-{
+function pad-text($value) {
     # Default command
     $cmd = ""
     # Default screen display type (t - top)
@@ -50,16 +47,13 @@ function pad-text($value)
         { 
             $cmd = "static"
         }
-        'startTimer'
-        {
+        'startTimer'{
             $cmd = "startTimer"
         }
-        'pauseTimer'
-        {
+        'pauseTimer'{
             $cmd = "pauseTimer"
         }
-        'resettimer'
-        {
+        'resettimer'{
             $cmd = "resettimer"
         }
         ''
@@ -97,8 +91,7 @@ function pad-text($value)
 }
 
 # Function to add CORS headers to response
-function Add-CorsHeaders($response)
-{
+function Add-CorsHeaders($response) {
     $response.AppendHeader("Access-Control-Allow-Origin", "*")
     $response.AppendHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
     $response.AppendHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With")
@@ -106,13 +99,11 @@ function Add-CorsHeaders($response)
 }
 
 # Main loop
-while ($http.IsListening)
-{
+while ($http.IsListening) {
     $context = $http.GetContext()
     
     # Handle preflight OPTIONS requests
-    if ($context.Request.HttpMethod -eq 'OPTIONS')
-    {
+    if ($context.Request.HttpMethod -eq 'OPTIONS') {
         # Add CORS headers to response
         Add-CorsHeaders -response $context.Response
         
@@ -126,17 +117,14 @@ while ($http.IsListening)
     }
     
     # Handle POST requests to /dashboard/post
-    if ($context.Request.HttpMethod -eq 'POST' -and $context.Request.RawUrl -eq '/dashboard/post')
-    {
+    if ($context.Request.HttpMethod -eq 'POST' -and $context.Request.RawUrl -eq '/dashboard/post') {
         $FormContent = [System.IO.StreamReader]::new($context.Request.InputStream).ReadToEnd()
         $dataToSend = $FormContent | ConvertFrom-Json
         
-        if ($dataToSend.command -eq 'postRaw')
-        {
+        if ($dataToSend.command -eq 'postRaw') {
             send_display($dataToSend.data)
         }
-        else
-        {
+        else {
             $formattedData = pad-text($dataToSend)
             send_display($formattedData)
         }
@@ -154,8 +142,7 @@ while ($http.IsListening)
     }
     
     # Handle GET requests
-    if ($context.Request.HttpMethod -eq 'POST' -and $context.Request.RawUrl -eq '/kill')
-    {
+    if ($context.Request.HttpMethod -eq 'POST' -and $context.Request.RawUrl -eq '/kill') {
         # Add CORS headers to all responses
         # Add-CorsHeaders -response $context.Response
         $context.Response.StatusCode = 200

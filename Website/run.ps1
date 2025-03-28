@@ -5,12 +5,12 @@ $http.Start();
 
 # Serial port setup 
 $enteredPort = Read-Host "Enter Comm PORT"
-$signPort = "COM$enteredPort"
+$signPort = "COM $enteredPort"
 $baudRate = Read-Host "Enter Baud Rate"
 
 
-$out_port_a = new-Object System.IO.Ports.SerialPort $signPort,$baudRate,None,8,one
-$out_port_a.open() 
+# $out_port_a = new-Object System.IO.Ports.SerialPort $signPort,$baudRate,None,8,one
+# $out_port_a.open() 
 
 # Log ready message to terminal
 if ($http.IsListening) 
@@ -21,32 +21,29 @@ if ($http.IsListening)
 
 # Helper functions
 function send_display($data)
+
 {
-    $out_port_a.WriteLine($data)
+    # Uncomment this line when ready to use actual serial port
+    # $out_port_a.WriteLine($data)
     write-host($data)
 }
 
 function pad-text($value)
 {
     
-    if($value.command -eq "pauseTimer")
-    {
+    if($value.command -eq "pTimer"){
         return  "$" + $value.command + "$"
     }
-    elseif($value.command -eq "resetTimer")
-    {
-        return  "$" + $value.command + "$"
+    elseif($value.command -eq "rTimer"){
+        return  "$" + $value.command  + "$"
     }
-    elseif($value.command -eq "settings")
-    {
-        return "$" + $value.command + "$" + "[" + $value.brightness + ", " +  $value.tcolor + ", " +  $value.bcolor + ", " + $value.fcolor + "]"
+    elseif($value.command -eq "settns"){
+        return "$" + $value.command + "$" +  "[" + $value.brightness + ", " +  $value.tcolor + ", " +  $value.bcolor + ", " + $value.fcolor + "]"
     }
-    elseif($value.command -eq "custom")
-    {
-        return "$" + $value.command + "$" + "[" + $value.data + "]"
+    elseif($value.command -eq "custom"){
+        return "$" + $value.command + "$" +  "[" + $value.data + "]"
     }
-    else
-    {
+    else{
         return "$" + $value.command + "$" + $value.isBig + "[" + $value.data + "]"
     }
 
@@ -67,8 +64,7 @@ while ($http.IsListening)
     $context = $http.GetContext()
     
     # Handle preflight OPTIONS requests
-    if ($context.Request.HttpMethod -eq 'OPTIONS')
-    {
+    if ($context.Request.HttpMethod -eq 'OPTIONS') {
   
         Add-CorsHeaders -response $context.Response
         $context.Response.StatusCode = 200
@@ -80,17 +76,14 @@ while ($http.IsListening)
     }
     
     # Handle POST requests to /dashboard/post
-    if ($context.Request.HttpMethod -eq 'POST' -and $context.Request.RawUrl -eq '/dashboard/post')
-    {
+    if ($context.Request.HttpMethod -eq 'POST' -and $context.Request.RawUrl -eq '/dashboard/post') {
         $FormContent = [System.IO.StreamReader]::new($context.Request.InputStream).ReadToEnd()
         $dataToSend = $FormContent | ConvertFrom-Json
         
-        if ($dataToSend.command -eq 'postRaw')
-        {
+        if ($dataToSend.command -eq 'postRaw') {
             send_display($dataToSend.data)
         }
-        else
-        {
+        else {
             $formattedData = pad-text($dataToSend)
             send_display($formattedData)
         }
@@ -105,8 +98,7 @@ while ($http.IsListening)
     }
     
     # Handle GET requests
-    if ($context.Request.HttpMethod -eq 'GET' -and $context.Request.RawUrl -eq '/kill')
-    {
+    if ($context.Request.HttpMethod -eq 'GET' -and $context.Request.RawUrl -eq '/kill') {
         Write-Host "Stopping the Server"
         Add-CorsHeaders -response $context.Response
         $context.Response.StatusCode = 200
@@ -118,3 +110,10 @@ while ($http.IsListening)
         break
     }
 }
+
+
+
+
+
+
+

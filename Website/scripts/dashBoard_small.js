@@ -3,13 +3,15 @@ const API_URL = 'http://127.0.0.1:8080'; // Change 127.0.0.1 to localhost if you
 async function sendMessage()
 {
 	let message = document.getElementById('message').value;
-	const message2 = document.getElementById('message2').value;
-	const animation = document.querySelector('input[name="animation"]:checked').value;
-	const isBig = document.querySelector('input[name="isBig"]:checked').value;
+	let message2 = document.getElementById('message2').value;
+	let animation = document.querySelector('input[name="animation"]:checked').value;
+	let isBig = document.querySelector('input[name="isBig"]:checked').value;
+    let send = document.getElementById("btn_send");
+
 
 	if (isBig === "no")
 	{
-		message = message + "," + message2;
+			message = message + "," + message2;
 	}
 
 	if (!message)
@@ -17,6 +19,8 @@ async function sendMessage()
 		alert('Please enter a message');
 	}
 	else{
+		send.disabled = true;
+		send.style.cursor = "not-allowed";
 		const response = await fetch(`${API_URL}/dashboard/post`,
 		{
 			method: 'POST',
@@ -33,6 +37,10 @@ async function sendMessage()
 		{
 			alert("Failed to connect");
 		}
+		setTimeout(function(){
+			send.disabled = false;
+			send.style.cursor = "pointer";
+		}, 4000)
 	}
 }
 
@@ -41,7 +49,6 @@ async function killServer()
 	if (confirm('Are you sure you want to stop the server?'))
 	{
 		const response = await fetch(`${API_URL}/kill`)
-
 		if (response.status === 200)
 		{
 			alert('Server stopped successfully');
@@ -60,7 +67,9 @@ async function start_timer()
 
 	const minutes = document.getElementById('minutes').value;
 	const seconds = document.getElementById('seconds').value;
+	let s_timer = document.querySelector('.btn-start');
 	let sflag = true;
+
 	if(parseInt(minutes) > 99)
 		{
 		alert("Max minutes allowed are 99");
@@ -76,13 +85,14 @@ async function start_timer()
     if(sflag)
 		{
 		const message = minutes + ":" + seconds;
+		s_timer.disabled = true;
 		const response = await fetch(`${API_URL}/dashboard/post`,
 			{
 				method: 'POST',
 				headers: {"Content-Type": "application/json"},
 				body: JSON.stringify(
 				{
-					"command": "startTimer",
+					"command": "sTimer",
 					"isBig": "yes",
 					"data": message.toString()
 				})
@@ -92,19 +102,24 @@ async function start_timer()
 		{
 			alert('Failed to send message');
 		}
+		setTimeout(function(){
+			s_timer.disabled = false;
+			s_timer.style.cursor = "pointer";
+		}, 4000)
 	}
 }
 
 async function pause_timer()
 {
-
+	let p_timer = document.querySelector('.btn-pause');
+    p_timer.disabled = true;
 	const response = await fetch(`${API_URL}/dashboard/post`,
 		{
 			method: 'POST',
 			headers: {"Content-Type": "application/json"},
 			body: JSON.stringify(
 			{
-				"command": "pauseTimer"
+				"command": "pTimer"
 			})
 		});
 
@@ -112,18 +127,23 @@ async function pause_timer()
 	{
 		alert('Failed to send message');
 	}
+	setTimeout(function(){
+		p_timer.disabled = false;
+		p_timer.style.cursor = "pointer";
+	}, 4000)
 }
 
 async function reset_timer()
 {
-
+	let r_timer = document.querySelector('.btn-reset');
+    r_timer.disabled = true;
 	const response = await fetch(`${API_URL}/dashboard/post`,
 		{
 			method: 'POST',
 			headers: {"Content-Type": "application/json"},
 			body: JSON.stringify(
 			{
-				"command": "resetTimer"
+				"command": "rTimer"
 			})
 		});
 
@@ -131,23 +151,28 @@ async function reset_timer()
 	{
 		alert('Failed to send message');
 	}
+	setTimeout(function(){
+		r_timer.disabled = false;
+		r_timer.style.cursor = "pointer";
+	}, 4000)
 }
 
 async function display_time()
 {
+	let d_time = document.getElementById("timeOfDayBtn");
 	const currentTime = new Intl.DateTimeFormat('en-US', {
 		hour: 'numeric',
 		minute: 'numeric',
 		hour12: true
 	  }).format(new Date());
-
+    d_time.disabled = true;
 	const response = await fetch(`${API_URL}/dashboard/post`,
 		{
 			method: 'POST',
 			headers: {"Content-Type": "application/json"},
 			body: JSON.stringify(
 			{
-				"command": "displayTime",
+				"command": "dTimer",
 				"isBig": "yes",
 				"data": currentTime.toString()
 			})
@@ -157,6 +182,10 @@ async function display_time()
 	{
 		alert('Failed to send message');
 	}
+	setTimeout(function(){
+		d_time.disabled = false;
+		d_time.style.cursor = "pointer";
+	}, 4000)
 	
 }
 
@@ -175,18 +204,19 @@ all_preset_btns.forEach(btn =>
 
 async function send_settings()
 {
+	let set_btn = document.querySelector('.save-button');
 	const brightness_value = document.getElementById('brightnessSlider').value;
 	const top_color = document.getElementById('topTextcolour').value;
 	const bottom_color = document.getElementById('bottomTextcolour').value;
     const full_text_color = document.getElementById('fullScreenTextcolour').value;
-
+    set_btn.disabled = true;
 	const response = await fetch(`${API_URL}/dashboard/post`,
 		{
 			method: 'POST',
 			headers: {"Content-Type": "application/json"},
 			body: JSON.stringify(
 			{
-				"command": "settings",
+				"command": "settns",
 				"brightness": brightness_value,
 				"tcolor": top_color,
 				"bcolor": bottom_color,
@@ -198,6 +228,10 @@ async function send_settings()
 	{
 		alert('Failed to send message');
 	}
+	setTimeout(function(){
+		set_btn.disabled = false;
+		set_btn.style.cursor = "pointer";
+	}, 4000)
 	
 }
 

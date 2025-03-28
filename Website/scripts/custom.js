@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function()
     let isDrawing = false;
     let isErasing = false;
     let drawnPixels = new Set();
+
     
     // Create pixel board
     function createPixelBoard()
@@ -24,6 +25,7 @@ document.addEventListener('DOMContentLoaded', function()
                 pixel.className = 'pixel';
                 pixel.dataset.row = row;
                 pixel.dataset.col = col;
+                pixel.dataset.color = currentColor;
                 pixel.style.backgroundColor = '#ffffff';
                 
                 pixel.addEventListener('mousedown', startDrawing);
@@ -52,16 +54,23 @@ document.addEventListener('DOMContentLoaded', function()
         let pixel = e.target;
         let row = pixel.dataset.row;
         let col = pixel.dataset.col;
-        
+        // let color = pixel.dataset.color;
+        let prevColor = pixel.style.backgroundColor;
         if (isErasing)
         {
             e.target.style.backgroundColor = '#ffffff';
-            drawnPixels.delete(`(${row},${col})`);
+            drawnPixels.delete(`(${row},${col},${prevColor})`);
         }
         else
         {
             e.target.style.backgroundColor = currentColor;
-            drawnPixels.add(`(${row},${col})`);
+            if (prevColor === "rgb(0,0,0)"){
+                drawnPixels.add(`(${row},${col},#ffffff)`); // If the current color of this pixel is black, you add it as white
+            }
+            else{
+                drawnPixels.add(`(${row},${col},${currentColor})`);
+            }
+     
         }
     }
     
@@ -86,16 +95,22 @@ document.addEventListener('DOMContentLoaded', function()
         {
             let row = pixel.dataset.row;
             let col = pixel.dataset.col;
-
+            // let color = pixel.dataset.color;
+            let prevColor = pixel.style.backgroundColor;
             if (isErasing)
             {
                 pixel.style.backgroundColor = '#ffffff';
-                drawnPixels.delete(`(${row},${col})`);
+                drawnPixels.delete(`(${row},${col},${prevColor})`);
             }
             else
             {
                 pixel.style.backgroundColor = currentColor;
-                drawnPixels.add(`(${row},${col})`);
+                if (color === "#000000"){
+                    drawnPixels.add(`(${row},${col},#ffffff)`); // If the current color of this pixel is black, you add it as white
+                }
+                else{
+                    drawnPixels.add(`(${row},${col},${currentColor})`);
+                }
             }
         }
     }
@@ -135,6 +150,8 @@ document.addEventListener('DOMContentLoaded', function()
     
     sendBtn.addEventListener('click', async (e) => {
         e.preventDefault();
+        sendBtn.disabled = true;
+        sendBtn.style.cursor = "not-allowed";
         let f_list = Array.from(drawnPixels).join(',');
         const resp =  await fetch(`${API_URL}/dashboard/post`,
             {
@@ -151,6 +168,10 @@ document.addEventListener('DOMContentLoaded', function()
         {
             alert('Failed to send message');
         }
+        setTimeout(function(){
+            sendBtn.disabled = false;
+            sendBtn.style.cursor = "pointer";
+        }, 5000);
         
     });
     // Initialize board
