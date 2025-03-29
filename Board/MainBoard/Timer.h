@@ -15,6 +15,7 @@ public:
     bool getTimerRunning();
     bool getTimerPaused();
     void updateTimer();
+    void parseTimerInput(String input);
 
 private:
     RTC_DS3231 rtc;

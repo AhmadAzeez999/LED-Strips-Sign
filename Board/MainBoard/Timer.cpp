@@ -97,3 +97,37 @@ bool Timer::getTimerPaused()
 {
   return timerPaused;
 }
+
+void Timer::parseTimerInput(String input)
+{
+  // Find brackets
+  int openBracket = input.indexOf('[');
+  int closeBracket = input.indexOf(']');
+  
+  // Check if brackets are valid
+  if (openBracket == -1 || closeBracket == -1 || openBracket >= closeBracket)
+  {
+    // Invalid input format
+    Serial.println("Error: Invalid time input format");
+    return;
+  }
+  
+  // Find the comma separating minutes and seconds
+  int commaIndex = input.indexOf(":", openBracket);
+  
+  // Check if comma is valid
+  if (commaIndex == -1 || commaIndex >= closeBracket)
+  {
+    Serial.println("Error: Invalid time input format");
+    return;
+  }
+  
+  String minStr = input.substring(openBracket + 1, commaIndex);
+  String secStr = input.substring(commaIndex + 1, closeBracket);
+  
+  int minutes = minStr.toInt();
+  int seconds = secStr.toInt();
+  
+  // Start timer with parsed minutes and seconds
+  startTimer(minutes, seconds);
+}

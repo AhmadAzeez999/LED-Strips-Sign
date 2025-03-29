@@ -8,7 +8,7 @@ Timer timers;
 
 #define IR_PIN 10
 
-    RemoteControl::RemoteControl() : bright(4), remoteStatus(false), enteredValue(0), inputState(false), minu(0) {}
+    RemoteControl::RemoteControl() : bright(4), remoteStatus(false), enteredValue(0), inputState(false), minu(0), fIndex(0), tbIndex(0), timerInputMode(false) {}
 
     void RemoteControl::setupRemote() {
         timers.setupRTC();
@@ -113,46 +113,64 @@ Timer timers;
                 setDefaultMessage(remoteCode);
               
                 handleTimerCodes(remoteCode);
-                if (remoteCode == 0xF8070707) adjustBrightness(1);
-                else if (remoteCode == 0xF40B0707) adjustBrightness(-1);
-              }
-                /*
-                if(remoteCode == 0xB8470707)
+
+                if(remoteCode == 0x9F600707)
                 {
-                  inputState = !inputState;
-                  Serial.println(inputState);
-                  if(inputState)
-                  {
-                    manualTimerInput(remoteCode);
-                  }
-                  else
-                  {
-                    int minutes = enteredValue / 100;  // First two digits = minutes
-                    int seconds = enteredValue % 100;
-                    timers.set(minutes, seconds);
-                    enteredValue = 0;
-                  }
+                  tbIndex = (tbIndex + 1) %6;
+                  changeTBColourScheme();
                   
                 }
-                */
+                else if(remoteCode == 0x9E610707)
+                {
+                  tbIndex = tbIndex - 1;
+                  changeTBColourScheme();
+                }
                 
-                /*
-                else if (remoteCode == 0xFFE21D) {  // Play/Pause button
-                  if (timers.isRunning()) {
-                      timers.pause();
-                      Serial.println("Timer Paused.");
-                  } else {
-                      timers.start();
-                      Serial.println("Timer Resumed.");
-                  }
+                else if(remoteCode == 0x9A650707)
+                {
+                  fIndex = fIndex - 1;
+                  changeFColourScheme();
+                  Serial.println(fIndex);
                 }
-                else if (remoteCode == 0xFF22DD) {  // Stop button → Reset timer
-                  timers.set(0, 0);
-                  Serial.println("Timer Stopped.");
-                  Display::getInstance().displayText("00:00", "", "STATIC", "CENTER", true);
+                else if(remoteCode == 0x9D620707)
+                {
+                  fIndex = fIndex + 1;
+                  changeFColourScheme();
                 }
-                */
-   
+
+                if(tbIndex > 5)
+                {
+                  tbIndex = 0;
+                  changeTBColourScheme();
+                } 
+                else if(tbIndex < 0)
+                {
+                  tbIndex = 5;
+                  changeTBColourScheme();
+                } 
+
+                if(fIndex > 2) 
+                {
+                  fIndex = 0;
+                  changeFColourScheme();
+                }
+                else if(fIndex < 0) 
+                {
+                  fIndex = 2;
+                  changeFColourScheme();
+                }
+                if (remoteCode == 0xF8070707) adjustBrightness(1);
+                else if (remoteCode == 0xF40B0707) adjustBrightness(-1);
+
+                if(remoteCode == 0x946B0707)
+                {
+                  Display::getInstance().displayText("00+:00", "", "static", "yes");
+                  timerInputMode = true;
+                  
+                  manualTimerInput(); // while loop
+                  delay(500);
+                }
+              } 
             }
 
             //delay(500);
@@ -167,50 +185,156 @@ Timer timers;
     }
 
 
-// void RemoteControl::manualTimerInput(uint32_t remoteCode)
-// { 
-//       //Serial.println(remoteCode);
-//       int digit = getNumberFromIR(remoteCode);
-//       Serial.println(digit);
-//       if(enteredValue < 10000)
-//       {
-//         if(digit != -1)
-//         {
-//           enteredValue = (enteredValue * 10) + digit;
-//           updateDisplay(enteredValue);
-//           //Serial.println(enteredValue);
-//           //Serial.println(digit);
-//           //digit = -1;
-//         }
-//         //Serial.println(digit);
-//       }
-// }
+void RemoteControl::manualTimerInput() {
+  char num[11] = ""; // Supports up to 10 digits + null terminator
+  String inputToSend = "";
+  while(timerInputMode) {
+    IrReceiver.resume();
+    if(IrReceiver.decode())
+    {
+      uint32_t remoteCode = IrReceiver.decodedIRData.decodedRawData;
+      Serial.println("Decoded Raw Data: ");
+      Serial.println(remoteCode, HEX);
 
-// int RemoteControl::getNumberFromIR(uint32_t command) {
-//     for (uint8_t i = 0; i < 10; i++) {
-//         if (command == timerCodes[i]) {
-//             Serial.print("Detected Number: ");
-//             Serial.println(i);  // Print the detected number
-//             return i;  // Return the actual number (0-9)
-//         }
-//     }
-// }
+      // Check for exit code
+      if (remoteCode == 0x946B0707) {
+        Serial.println("Exit Command Received.");
+        timerInputMode = false;
+        timers.parseTimerInput(inputToSend);
+      }
 
-void RemoteControl::updateDisplay(int time) {
-    int minutes = time / 100;
-    int seconds = time % 100;
-
-    // Ensure proper MM:SS format
-    if (seconds >= 60) {
-        seconds = seconds % 60;
-        minutes = minutes + 1;
+      // Convert IR code to a digit
+      int digit = getNumberFromIR(remoteCode);
+      
+      if (digit == -1) {
+        Serial.println("Invalid IR Code. Ignored.");
+      } else {
+        size_t len = strlen(num);
+        if (len < 4) {
+          char digitChar = '0' + digit; // Convert to char
+          num[len] = digitChar;
+          num[len + 1] = '\0';
+          Serial.print("Current Input: ");
+          Serial.println(num);
+          if(len < 2)
+          {
+            Display::getInstance().clearBuffer(true);
+            char text[5];
+            sprintf(text, "%s+:00", num);
+            Serial.println(num[0]);
+            Serial.println(text);
+            Display::getInstance().displayText(text, "", "static", "yes");
+            inputToSend = "[" + String(text) + "]";
+          }
+          else if(len == 2)
+          {
+            Serial.println(num[2]);
+            char num1[3] = {num[0], num[1], '\0'};
+            char num2[2] = {num[2], '\0'};
+            Display::getInstance().clearBuffer(true);
+            char text[5];
+            sprintf(text, "%s+:0%s", num1, num2);
+            Serial.println(text);
+            Display::getInstance().displayText(text, "", "static", "yes");
+            inputToSend = "[" + String(text) + "]";
+          }
+          else if(len == 3)
+          {
+            char num1[3] = {num[0], num[1], '\0'};
+            char num2[3] = {num[2], num[3], '\0'};
+            Display::getInstance().clearBuffer(true);
+            char text[5];
+            sprintf(text, "%s+:%s", num1, num2);
+            Serial.println(text);
+            Display::getInstance().displayText(text, "", "static", "yes");
+            inputToSend = "[" + String(text) + "]";
+          }
+          // Display the digit
+          
+        } else {
+          Serial.println("Maximum digit limit reached.");
+        }
+      }
     }
-
-    char timeString[6];
-    sprintf(timeString, "%02d:%02d", minutes, seconds);
-    Display::getInstance().displayText(timeString, "", "static", "yes");
+  }
 }
 
+int RemoteControl::getNumberFromIR(uint32_t command) {
+  for (uint8_t i = 0; i < 10; i++) {
+    if (command == timerCodes[i]) {
+      Serial.print("Detected Number: ");
+      Serial.println(i);
+      if(i == 9)
+      {
+        return 0;
+      }
+      else
+      {
+        return i+1;
+      }
+    }
+  }
+  return -1; // Invalid input
+}
 
+void RemoteControl::changeTBColourScheme()
+{
+  switch(tbIndex)
+  {
+    case 0: Display::getInstance().setTopColour(0xff0000);
+            Display::getInstance().setBottomColour(0x00ff00);
+            Display::getInstance().displayText("Red", "Green", "static", "no");
+            break;
+
+    case 1: Display::getInstance().setTopColour(0xff0000);
+            Display::getInstance().setBottomColour(0x0000ff);
+            Display::getInstance().displayText("Red", "Blue", "static", "no");
+            break;
+
+    case 2: Display::getInstance().setTopColour(0x00ff00);
+            Display::getInstance().setBottomColour(0xff0000);
+            Display::getInstance().displayText("Green", "Red", "static", "no");
+            break;
+
+    case 3: Display::getInstance().setTopColour(0x00ff00);
+            Display::getInstance().setBottomColour(0x0000ff);
+            Display::getInstance().displayText("Green", "Blue", "static", "no");
+            break;
+
+    case 4: Display::getInstance().setTopColour(0x0000ff);
+            Display::getInstance().setBottomColour(0xff0000);
+            Display::getInstance().displayText("Blue", "Red", "static", "no");
+            break;
+
+    case 5: Display::getInstance().setTopColour(0x0000ff);
+            Display::getInstance().setBottomColour(0x00ff00);
+            Display::getInstance().displayText("Blue", "Green", "static", "no");
+            break;
+  }
+}
+
+void RemoteControl::changeFColourScheme()
+{
+  switch(fIndex)
+  {
+    case 0: Display::getInstance().setTopColour(0xff0000);
+            Display::getInstance().setBottomColour(0xff0000);
+            Display::getInstance().setFullColour(0xff0000);
+            Display::getInstance().displayText("Red", "", "static", "yes");
+            break;
+
+    case 1: Display::getInstance().setTopColour(0x00ff00);
+            Display::getInstance().setBottomColour(0x00ff00);
+            Display::getInstance().setFullColour(0x00ff00);
+            Display::getInstance().displayText("Green", "", "static", "yes");
+            break;
+
+    case 2: Display::getInstance().setTopColour(0x0000ff);
+            Display::getInstance().setBottomColour(0x0000ff);
+            Display::getInstance().setFullColour(0x0000ff);
+            Display::getInstance().displayText("Blue", "", "static", "yes");
+            break;
+  }
+}
 
 
