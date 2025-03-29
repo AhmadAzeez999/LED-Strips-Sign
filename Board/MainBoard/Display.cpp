@@ -236,7 +236,7 @@ void Display::displayText(const char* text1, const char* text2, const char* comm
     }
 
     unsigned long previousMillis = 0;
-int shift = -NUMPIXELS;
+    int shift = -NUMPIXELS;
 
     for (int shift = -NUMPIXELS; shift < totalWidth; shift++)
     {

@@ -14,11 +14,17 @@ async function sendMessage()
 			message = message + "," + message2;
 	}
 
+	if (animation == "scroll")
+	{
+		animation = document.querySelector('input[name="scrollType"]:checked').value;
+	}
+
 	if (!message)
 	{
 		alert('Please enter a message');
 	}
-	else{
+	else
+	{
 		send.disabled = true;
 		send.style.cursor = "not-allowed";
 		const response = await fetch(`${API_URL}/dashboard/post`,
@@ -71,7 +77,7 @@ async function start_timer()
 	let sflag = true;
 
 	if(parseInt(minutes) > 99)
-		{
+	{
 		alert("Max minutes allowed are 99");
 		sflag = false;
 	}
@@ -83,20 +89,20 @@ async function start_timer()
 	}
 
     if(sflag)
-		{
-		const message = minutes + "," + seconds;
+	{
+		const message = minutes + ":" + seconds;
 		s_timer.disabled = true;
 		const response = await fetch(`${API_URL}/dashboard/post`,
+		{
+			method: 'POST',
+			headers: {"Content-Type": "application/json"},
+			body: JSON.stringify(
 			{
-				method: 'POST',
-				headers: {"Content-Type": "application/json"},
-				body: JSON.stringify(
-				{
-					"command": "sTimer",
-					"isBig": "yes",
-					"data": message.toString()
-				})
-			});
+				"command": "sTimer",
+				"isBig": "yes",
+				"data": message.toString()
+			})
+		});
 	
 		if (response.status != 200)
 		{
@@ -112,16 +118,20 @@ async function start_timer()
 async function pause_timer()
 {
 	let p_timer = document.querySelector('.btn-pause');
+
+	p_timer.style.display = 'none';
+    document.querySelector('.btn-resume').style.display = 'inline-block';
+
     p_timer.disabled = true;
 	const response = await fetch(`${API_URL}/dashboard/post`,
+	{
+		method: 'POST',
+		headers: {"Content-Type": "application/json"},
+		body: JSON.stringify(
 		{
-			method: 'POST',
-			headers: {"Content-Type": "application/json"},
-			body: JSON.stringify(
-			{
-				"command": "pTimer"
-			})
-		});
+			"command": "pTimer"
+		})
+	});
 
 	if (response.status != 200)
 	{
@@ -133,19 +143,48 @@ async function pause_timer()
 	}, 4000)
 }
 
+async function resume_timer()
+{
+	let resume_timer = document.querySelector('.btn-resume');
+
+	document.querySelector('.btn-pause').style.display = 'inline-block';
+    resume_timer.style.display = 'none';
+	
+    resume_timer.disabled = true;
+
+	const response = await fetch(`${API_URL}/dashboard/post`,
+	{
+		method: 'POST',
+		headers: {"Content-Type": "application/json"},
+		body: JSON.stringify(
+		{
+			"command": "resume"
+		})
+	});
+
+	if (response.status != 200)
+	{
+		alert('Failed to send message');
+	}
+	setTimeout(function(){
+		resume_timer.disabled = false;
+		resume_timer.style.cursor = "pointer";
+	}, 4000)
+}
+
 async function reset_timer()
 {
 	let r_timer = document.querySelector('.btn-reset');
     r_timer.disabled = true;
 	const response = await fetch(`${API_URL}/dashboard/post`,
+	{
+		method: 'POST',
+		headers: {"Content-Type": "application/json"},
+		body: JSON.stringify(
 		{
-			method: 'POST',
-			headers: {"Content-Type": "application/json"},
-			body: JSON.stringify(
-			{
-				"command": "rTimer"
-			})
-		});
+			"command": "rTimer"
+		})
+	});
 
 	if (response.status != 200)
 	{
@@ -162,14 +201,14 @@ async function display_time()
 	let d_time = document.getElementById("timeOfDayBtn");
     d_time.disabled = true;
 	const response = await fetch(`${API_URL}/dashboard/post`,
+	{
+		method: 'POST',
+		headers: {"Content-Type": "application/json"},
+		body: JSON.stringify(
 		{
-			method: 'POST',
-			headers: {"Content-Type": "application/json"},
-			body: JSON.stringify(
-			{
-				"command": "dot"
-			})
-		});
+			"command": "dot"
+		})
+	});
 
 	if (response.status != 200)
 	{
@@ -184,9 +223,9 @@ async function display_time()
 
 const all_preset_btns = document.querySelectorAll('#preset_btns');
 all_preset_btns.forEach(btn => 
-	{
+{
 	btn.addEventListener('click', (e) => 
-		{
+	{
 		e.preventDefault();
 		let time_val = btn.innerHTML;
 		let data = time_val.split(':');
@@ -204,24 +243,25 @@ async function send_settings()
     const full_text_color = document.getElementById('fullScreenTextcolour').value;
     set_btn.disabled = true;
 	const response = await fetch(`${API_URL}/dashboard/post`,
+	{
+		method: 'POST',
+		headers: {"Content-Type": "application/json"},
+		body: JSON.stringify(
 		{
-			method: 'POST',
-			headers: {"Content-Type": "application/json"},
-			body: JSON.stringify(
-			{
-				"command": "settns",
-				"brightness": brightness_value,
-				"tcolor": top_color,
-				"bcolor": bottom_color,
-				"fcolor": full_text_color,
-			})
-		});
+			"command": "settns",
+			"brightness": brightness_value,
+			"tcolor": top_color,
+			"bcolor": bottom_color,
+			"fcolor": full_text_color,
+		})
+	});
 
 	if (response.status != 200)
 	{
 		alert('Failed to send message');
 	}
-	setTimeout(function(){
+	setTimeout(function()
+	{
 		set_btn.disabled = false;
 		set_btn.style.cursor = "pointer";
 	}, 4000)

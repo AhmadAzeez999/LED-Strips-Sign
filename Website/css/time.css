@@ -97,6 +97,18 @@
     background-color: #F08C38;
 }
 
+.btn-resume
+{
+    background-color: #34bd38;
+    color: white;
+    display: none;
+}
+
+.btn-resume:hover
+{
+    background-color: #39d03e;
+}
+
 .btn-reset 
 {
     background-color: #FF5757;

@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function()
     const clearBtn = document.getElementById('clearBtn');
     const sendBtn = document.getElementById('sendBtn');
     
-    let currentColor = '#000000';
+    let currentColor = '#ffffff';
     let isDrawing = false;
     let isErasing = false;
     let drawnPixels = new Set();
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function()
                 pixel.dataset.col = col;
                 pixel.dataset.color = currentColor;
             
-                pixel.style.backgroundColor = '#ffffff';
+                pixel.style.backgroundColor = '#000000';
                 
                 // Prevent default drag behavior on each pixel
                 pixel.addEventListener('mousedown', (e) => {
@@ -80,18 +80,13 @@ document.addEventListener('DOMContentLoaded', function()
         
         if (isErasing)
         {
-            pixel.style.backgroundColor = '#ffffff';
-            drawnPixels.delete(`(${row},${col},${prevColor})`);
+            pixel.style.backgroundColor = '#000000';
+            drawnPixels.delete(`(${row},${col},${rgbToHex(prevColor)})`);
         }
         else
         {
             pixel.style.backgroundColor = currentColor;
-            if (currentColor === "#000000"){
-                drawnPixels.add(`(${row},${col},#ffffff)`);
-            }
-            else{
-                drawnPixels.add(`(${row},${col},${currentColor})`);
-            }
+            drawnPixels.add(`(${row},${col},${currentColor})`);
         }
     }
     
@@ -118,30 +113,50 @@ document.addEventListener('DOMContentLoaded', function()
             let col = pixel.dataset.col;
             let color = pixel.dataset.color;
             let prevColor = pixel.style.backgroundColor;
+            
             if (isErasing)
             {
-                pixel.style.backgroundColor = '#ffffff';
-                drawnPixels.delete(`(${row},${col},${prevColor})`);
+                pixel.style.backgroundColor = '#000000';
+                drawnPixels.delete(`(${row},${col},${rgbToHex(prevColor)})`);
             }
             else
             {
                 pixel.style.backgroundColor = currentColor;
-                if (currentColor === "#000000"){
-                    drawnPixels.add(`(${row},${col},#ffffff)`);
-                }
-                else{
-                    drawnPixels.add(`(${row},${col},${currentColor})`);
-                }
+                drawnPixels.add(`(${row},${col},${currentColor})`);
             }
         }
+    }
+
+    function rgbToHex(rgbStr)
+    {
+        const rgb = rgbStr.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+
+        if (!rgb)
+            return rgbStr;
+        
+        function toHex(x)
+        {
+            const hex = parseInt(x).toString(16);
+            return hex.length === 1 ? '0' + hex : hex;
+        }
+        
+        // Return in #rrggbb format
+        return '#' + toHex(rgb[1]) + toHex(rgb[2]) + toHex(rgb[3]);
     }
     
     // Color picker event
     colorPicker.addEventListener('input', function(e)
     {
         currentColor = e.target.value;
+
+        if (currentColor === '#000000')
+        {
+            // If black was selected, make it white (since black can't be displayed)
+            currentColor = '#ffffff'
+        }
+
         isErasing = false;
-        eraserBtn.style.backgroundColor = '#333';
+        eraserBtn.style.backgroundColor = '#e9e9e9';
     });
     
     // Eraser button
@@ -164,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function()
         const pixels = document.querySelectorAll('.pixel');
         pixels.forEach(pixel =>
         {
-            pixel.style.backgroundColor = '#ffffff';
+            pixel.style.backgroundColor = '#000000';
         });
         drawnPixels.clear();
     });

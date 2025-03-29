@@ -106,6 +106,10 @@ void parseInput(String input)
   {
     timer.resetTimer(currentMin, currentSec);
   }
+  else if (command == "resume")
+  {
+    timer.resumeTimer();
+  }
   else
   {
     int openBracket = input.indexOf('[');
