@@ -6,10 +6,15 @@ document.addEventListener('DOMContentLoaded', function()
     const clearBtn = document.getElementById('clearBtn');
     const sendBtn = document.getElementById('sendBtn');
     
-    let currentColor = '#000000';
+    let currentColor = '#ffffff';
     let isDrawing = false;
     let isErasing = false;
     let drawnPixels = new Set();
+
+    // Prevent default drag and selection behaviors
+    pixelBoard.addEventListener('dragstart', (e) => e.preventDefault());
+    pixelBoard.style.userSelect = 'none';
+    pixelBoard.style.webkitUserSelect = 'none';
     
     // Create pixel board
     function createPixelBoard()
@@ -24,9 +29,16 @@ document.addEventListener('DOMContentLoaded', function()
                 pixel.className = 'pixel';
                 pixel.dataset.row = row;
                 pixel.dataset.col = col;
-                pixel.style.backgroundColor = '#ffffff';
+                pixel.dataset.color = currentColor;
+            
+                pixel.style.backgroundColor = '#000000';
                 
-                pixel.addEventListener('mousedown', startDrawing);
+                // Prevent default drag behavior on each pixel
+                pixel.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    startDrawing(e);
+                });
+                
                 pixel.addEventListener('mouseover', draw);
                 pixel.addEventListener('touchstart', handleTouch);
                 pixel.addEventListener('touchmove', handleTouchMove);
@@ -35,33 +47,46 @@ document.addEventListener('DOMContentLoaded', function()
             }
         }
         
-        pixelBoard.addEventListener('mouseup', stopDrawing);  // This had document.listener
-        pixelBoard.addEventListener('touchend', stopDrawing); // This had document.listener
+        // Stop drawing when mouse leaves the board or mouse button is released
+        document.addEventListener('mouseup', stopDrawing);
+        document.addEventListener('mouseleave', stopDrawing);
+        document.addEventListener('touchend', stopDrawing);
     }
     
     function startDrawing(e)
     {
+        // Prevent default behavior and ensure it's left mouse button
+        e.preventDefault();
+        if (e.type === 'mousedown' && e.button !== 0) return;
+        
         isDrawing = true;
         draw(e);
     }
     
     function draw(e)
     {
+        // Only draw if mouse button is held down
         if (!isDrawing)
             return;
+        
         let pixel = e.target;
+        
+        // Ensure we're drawing on a pixel
+        if (!pixel.classList.contains('pixel')) return;
+        
         let row = pixel.dataset.row;
         let col = pixel.dataset.col;
+        let prevColor = pixel.style.backgroundColor;
         
         if (isErasing)
         {
-            e.target.style.backgroundColor = '#ffffff';
-            drawnPixels.delete(`(${row},${col})`);
+            pixel.style.backgroundColor = '#000000';
+            drawnPixels.delete(`(${row},${col},${rgbToHex(prevColor)})`);
         }
         else
         {
-            e.target.style.backgroundColor = currentColor;
-            drawnPixels.add(`(${row},${col})`);
+            pixel.style.backgroundColor = currentColor;
+            drawnPixels.add(`(${row},${col},${currentColor})`);
         }
     }
     
@@ -86,26 +111,52 @@ document.addEventListener('DOMContentLoaded', function()
         {
             let row = pixel.dataset.row;
             let col = pixel.dataset.col;
-
+            let color = pixel.dataset.color;
+            let prevColor = pixel.style.backgroundColor;
+            
             if (isErasing)
             {
-                pixel.style.backgroundColor = '#ffffff';
-                drawnPixels.delete(`(${row},${col})`);
+                pixel.style.backgroundColor = '#000000';
+                drawnPixels.delete(`(${row},${col},${rgbToHex(prevColor)})`);
             }
             else
             {
                 pixel.style.backgroundColor = currentColor;
-                drawnPixels.add(`(${row},${col})`);
+                drawnPixels.add(`(${row},${col},${currentColor})`);
             }
         }
+    }
+
+    function rgbToHex(rgbStr)
+    {
+        const rgb = rgbStr.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+
+        if (!rgb)
+            return rgbStr;
+        
+        function toHex(x)
+        {
+            const hex = parseInt(x).toString(16);
+            return hex.length === 1 ? '0' + hex : hex;
+        }
+        
+        // Return in #rrggbb format
+        return '#' + toHex(rgb[1]) + toHex(rgb[2]) + toHex(rgb[3]);
     }
     
     // Color picker event
     colorPicker.addEventListener('input', function(e)
     {
         currentColor = e.target.value;
+
+        if (currentColor === '#000000')
+        {
+            // If black was selected, make it white (since black can't be displayed)
+            currentColor = '#ffffff'
+        }
+
         isErasing = false;
-        eraserBtn.style.backgroundColor = '#333';
+        eraserBtn.style.backgroundColor = '#e9e9e9';
     });
     
     // Eraser button
@@ -128,32 +179,73 @@ document.addEventListener('DOMContentLoaded', function()
         const pixels = document.querySelectorAll('.pixel');
         pixels.forEach(pixel =>
         {
-            pixel.style.backgroundColor = '#ffffff';
+            pixel.style.backgroundColor = '#000000';
         });
         drawnPixels.clear();
     });
     
+    // Send button functionality (unchanged from original)
     sendBtn.addEventListener('click', async (e) => {
         e.preventDefault();
-        let f_list = Array.from(drawnPixels).join(',');
-        const resp =  await fetch(`${API_URL}/dashboard/post`,
-            {
-                method: 'POST',
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify(
-                {
-                    "command": "custom",
-                    "data": f_list
-                })
-        });
-    
-        if (resp.status != 200)
-        {
-            alert('Failed to send message');
+        sendBtn.disabled = true;
+        sendBtn.style.cursor = "not-allowed";
+        let f_list = Array.from(drawnPixels);
+        if(f_list.length > 15){
+            for (let i = 0; i < f_list.length; i += 15) {
+                let chunk = f_list.slice(i, i + 15).join(',');
+                if(i === 0){
+                    await fetch(`${API_URL}/dashboard/post`, {
+                        method: 'POST',
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            "command": "custom",
+                            "param": "start",
+                            "data": chunk
+                        })
+                    });
+                }
+                else{
+                    await fetch(`${API_URL}/dashboard/post`, {
+                        method: 'POST',
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            "command": "custom",
+                            "param": "no",
+                            "data": chunk
+                        })
+                    });
+                }   
+                await new Promise(resolve => setTimeout(resolve, 5000));
+            }
+            setTimeout(function(){
+                sendBtn.disabled = false;
+                sendBtn.style.cursor = "pointer";
+            }, 1000);
+
         }
-        
+        else{
+            const resp =  await fetch(`${API_URL}/dashboard/post`,
+                {
+                    method: 'POST',
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify(
+                    {
+                        "command": "custom",
+                        "data": f_list
+                    })
+            });
+            if (resp.status != 200)
+            {
+                alert('Failed to send message');
+            }
+            setTimeout(function(){
+                sendBtn.disabled = false;
+                sendBtn.style.cursor = "pointer";
+            }, 5000);
+
+        }
     });
+    
     // Initialize board
     createPixelBoard();
-
 });

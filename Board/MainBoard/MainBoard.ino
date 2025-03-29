@@ -23,6 +23,10 @@ char msgRaw[numRawChar];
 uint8_t charCount = 0;
 bool dataToSend = false;
 
+// Timer variables
+int currentMin = 0;
+int currentSec = 0;
+
 Display& display = Display::getInstance();
 //Display d;
 
@@ -32,7 +36,16 @@ void setup()
   timer.setupRTC();
   remote.setupRemote();
   display.setup(4);
-  
+  // parseInput("$custom$start[(0,0,#2309ec),(0,1,#2309ec),(0,2,#ffffff)]");
+  // parseInput("$custom$no[(1,0,#2309ec),(2,0,#2309ec),(3,0,#ffffff)]");
+  // parseInput("$custom$no[(5,0,#2309ec),(5,1,#2309ec),(5,2,#ffffff)]");
+
+  // parseInput("$custom$start[(0,1,#2309ec),(0,2,#2309ec)");
+
+  // parseInput("$sTimer$yes[10,00]");
+  // parseInput("$pTimer$");
+  // parseInput("$rTimer$");
+
   //timer.startTimer(5, 0);
 }
 
@@ -47,11 +60,13 @@ void loop()
 
   remote.useRemote();
   //timer.startTimer(5, 0);
-  //timer.updateTimer();
+  timer.updateTimer();
 }
 
 void parseInput(String input)
 {
+    Serial.print(input);
+
   // Check if input starts with $
   if (input.charAt(0) != '$')
   {
@@ -71,7 +86,9 @@ void parseInput(String input)
   // Using the command to determine how we will be parsing the input
   if (command == "custom")
   {
-    display.displayCustomPixels(input);
+    int openBracket = input.indexOf('[');
+    String chunckPos = input.substring(secondDollar + 1, openBracket);
+    display.displayCustomPixels(input, chunckPos);
   }
   else if (command == "settns")
   {
@@ -79,7 +96,7 @@ void parseInput(String input)
   }
   else if (command == "sTimer")
   {
-    timer.parseTimerInput(input);
+    parseTimeInput(input);
   }
   else if (command == "pTimer")
   {
@@ -87,7 +104,11 @@ void parseInput(String input)
   }
   else if (command == "rTimer")
   {
-    // timer.resetTimer();
+    timer.resetTimer(currentMin, currentSec);
+  }
+  else if (command == "resume")
+  {
+    timer.resumeTimer();
   }
   else
   {
@@ -169,4 +190,44 @@ void updateSettings(String input)
   display.setFullColour(fullColor);
 
   display.displayText("Done", "", "static", "yes");
+}
+
+void parseTimeInput(String input)
+{
+  // Find brackets
+  int openBracket = input.indexOf('[');
+  int closeBracket = input.indexOf(']');
+  
+  // Check if brackets are valid
+  if (openBracket == -1 || closeBracket == -1 || openBracket >= closeBracket)
+  {
+    // Invalid input format
+    Serial.println("Error: Invalid time input format");
+    return;
+  }
+  
+  // Find the comma separating minutes and seconds
+  int commaIndex = input.indexOf(",", openBracket);
+  
+  // Check if comma is valid
+  if (commaIndex == -1 || commaIndex >= closeBracket)
+  {
+    Serial.println("Error: Invalid time input format");
+    return;
+  }
+  
+  String minStr = input.substring(openBracket + 1, commaIndex);
+  String secStr = input.substring(commaIndex + 1, closeBracket);
+  
+  int minutes = minStr.toInt();
+  int seconds = secStr.toInt();
+
+  currentMin = minutes;
+  currentSec = seconds;
+
+  Serial.println(minutes);
+  Serial.println(seconds);
+  
+  // Start timer with parsed minutes and seconds
+  timer.startTimer(minutes, seconds);
 }

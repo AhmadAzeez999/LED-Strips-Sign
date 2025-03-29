@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () =>
 
     // For top and bottom display
     let topBottomElements = document.querySelectorAll('.with-top-bottom');
+    let scrollElement = document.querySelector('.with-scroll');
 
     // This is for helping users keep the test they typed for maxChars = 20
     let prevText = "";
@@ -22,6 +23,14 @@ document.addEventListener("DOMContentLoaded", () =>
 
     
     document.querySelectorAll('input[name="animation"]').forEach((radio) =>
+    {
+        radio.addEventListener("change", function ()
+        {
+            updateMaxCount();
+        });
+    });
+
+    document.querySelectorAll('input[name="scrollType"]').forEach((radio) =>
     {
         radio.addEventListener("change", function ()
         {
@@ -44,11 +53,9 @@ document.addEventListener("DOMContentLoaded", () =>
         const isBig = document.querySelector('input[name="isBig"]:checked').value;
         const animation = document.querySelector('input[name="animation"]:checked').value;
 
-        console.log(animation);
-        console.log(isBig);
+        scrollElement.classList.remove('show');
 
-        if (animation === "statc" ||
-            animation === "pause")
+        if (animation === "static")
         {
             if (isBig === "yes")
                 maxChars = 8;
@@ -58,12 +65,29 @@ document.addEventListener("DOMContentLoaded", () =>
             prevText = input.value;
         }
         else if (animation === "scroll")
-        {           
-            maxChars = 100;
+        {
+            scrollElement.classList.add('show');
+            const animationChild = document.querySelector('input[name="scrollType"]:checked').value;
+            
+            console.log(animationChild);
 
-            if (prevText.startsWith(input.value))
+            if (animationChild === "scrolS")
             {
-                input.value = prevText;
+                if (isBig === "yes")
+                    maxChars = 8;
+                else if (isBig === "no")
+                    maxChars = 20;
+    
+                prevText = input.value;
+            }
+            else if (animationChild === "scrolC")
+            {
+                maxChars = 100;
+
+                if (prevText.startsWith(input.value))
+                {
+                    input.value = prevText;
+                }
             }
         }
 
