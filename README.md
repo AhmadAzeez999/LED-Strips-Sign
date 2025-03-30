@@ -27,7 +27,7 @@ The LED Strips Scrolling Sign is a **web and remote-controlled scoreboard** powe
 Developed by:
 - [@AhmadAzeez999](https://github.com/AhmadAzeez999) (Website, Webserver, & Webserver-to-Board Communication)
 - [@WeziKaonga](https://github.com/WeziKaonga) (Remote Communication & Display)
-- [@Cipher-935](https://github.com/Cipher-935) (Bluetooth Communication & Webserver-to-Board Communication)
+- [@Cipher-935](https://github.com/Cipher-935) (Bluetooth Communication, Website Backend, & Webserver-to-Board Communication)
 - [@Bhu77ar](https://github.com/Bhu77ar) (Font Design & Implementation)
 - [@ChanndKaleka](https://github.com/ChanndKaleka) (Text Display & Font Implementation)
 
