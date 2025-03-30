@@ -91,6 +91,7 @@ async function start_timer()
 	{
 		const message = minutes + ":" + seconds;
 		s_timer.disabled = true;
+		s_timer.style.cursor = "not-allowed";
 		const response = await fetch(`${API_URL}/dashboard/post`,
 		{
 			method: 'POST',
@@ -114,21 +115,29 @@ async function start_timer()
 	}
 }
 
-async function pause_timer()
+async function pause_and_resume_timer()
 {
-	let p_timer = document.querySelector('.btn-pause');
-
-	p_timer.style.display = 'none';
-    document.querySelector('.btn-resume').style.display = 'inline-block';
-
-    p_timer.disabled = true;
+	let p_timer = document.querySelector('.btn-pause-resume');
+	let toggle = "";
+	if(p_timer.textContent === "Pause"){
+		toggle = "pTimer";
+		p_timer.textContent = "Resume";
+		p_timer.style.background = "green";
+	}
+	else{
+		toggle = "resume";
+		p_timer.textContent = "Pause";
+		p_timer.style.background = "rgb(120, 120, 27)";
+	}
+	p_timer.disabled = true;
+	p_timer.style.cursor = "not-allowed";
 	const response = await fetch(`${API_URL}/dashboard/post`,
 	{
 		method: 'POST',
 		headers: {"Content-Type": "application/json"},
 		body: JSON.stringify(
 		{
-			"command": "pTimer"
+			"command": toggle
 		})
 	});
 
@@ -142,39 +151,11 @@ async function pause_timer()
 	}, 4000)
 }
 
-async function resume_timer()
-{
-	let resume_timer = document.querySelector('.btn-resume');
-
-	document.querySelector('.btn-pause').style.display = 'inline-block';
-    resume_timer.style.display = 'none';
-	
-    resume_timer.disabled = true;
-
-	const response = await fetch(`${API_URL}/dashboard/post`,
-	{
-		method: 'POST',
-		headers: {"Content-Type": "application/json"},
-		body: JSON.stringify(
-		{
-			"command": "resume"
-		})
-	});
-
-	if (response.status != 200)
-	{
-		alert('Failed to send message');
-	}
-	setTimeout(function(){
-		resume_timer.disabled = false;
-		resume_timer.style.cursor = "pointer";
-	}, 4000)
-}
-
 async function reset_timer()
 {
 	let r_timer = document.querySelector('.btn-reset');
     r_timer.disabled = true;
+	r_timer.style.cursor = "not-allowed";
 	const response = await fetch(`${API_URL}/dashboard/post`,
 	{
 		method: 'POST',
@@ -199,6 +180,7 @@ async function display_time()
 {
 	let d_time = document.getElementById("timeOfDayBtn");
     d_time.disabled = true;
+	d_time.style.cursor = "not-allowed";
 	const response = await fetch(`${API_URL}/dashboard/post`,
 	{
 		method: 'POST',
@@ -241,6 +223,7 @@ async function send_settings()
 	const bottom_color = document.getElementById('bottomTextcolour').value;
     const full_text_color = document.getElementById('fullScreenTextcolour').value;
     set_btn.disabled = true;
+	set_btn.style.cursor = "not-allowed";
 	const response = await fetch(`${API_URL}/dashboard/post`,
 	{
 		method: 'POST',

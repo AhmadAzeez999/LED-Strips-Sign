@@ -86,27 +86,9 @@
     background-color: #2A4A8F;
 }
 
-.btn-pause 
-{
-    background-color: #FF9F43;
+.btn-pause-resume{
+    background-color: rgb(120, 120, 27);
     color: white;
-}
-
-.btn-pause:hover 
-{
-    background-color: #F08C38;
-}
-
-.btn-resume
-{
-    background-color: #34bd38;
-    color: white;
-    display: none;
-}
-
-.btn-resume:hover
-{
-    background-color: #39d03e;
 }
 
 .btn-reset 
