@@ -23,10 +23,6 @@ char msgRaw[numRawChar];
 uint8_t charCount = 0;
 bool dataToSend = false;
 
-// Timer variables
-int currentMin = 0;
-int currentSec = 0;
-
 Display& display = Display::getInstance();
 //Display d;
 
@@ -36,6 +32,9 @@ void setup()
   timer.setupRTC();
   remote.setupRemote();
   display.setup(4);
+
+  display.displayText("LED Strips", "Sign", "static", "no");
+
   // parseInput("$custom$start[(0,0,#2309ec),(0,1,#2309ec),(0,2,#ffffff)]");
   // parseInput("$custom$no[(1,0,#2309ec),(2,0,#2309ec),(3,0,#ffffff)]");
   // parseInput("$custom$no[(5,0,#2309ec),(5,1,#2309ec),(5,2,#ffffff)]");
@@ -104,7 +103,7 @@ void parseInput(String input)
   }
   else if (command == "rTimer")
   {
-    timer.resetTimer(currentMin, currentSec);
+    timer.resetTimer();
   }
   else if (command == "resume")
   {

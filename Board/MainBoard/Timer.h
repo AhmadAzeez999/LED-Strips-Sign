@@ -3,7 +3,8 @@
 
 #include <RTClib.h>
 
-class Timer {
+class Timer
+{
 public:
     Timer();  // Constructor
     void setupRTC();
@@ -11,7 +12,7 @@ public:
     void pauseTimer();
     void resumeTimer();
     void stopTimer();
-    void resetTimer(int minutes, int seconds);
+    void resetTimer();
     bool getTimerRunning();
     bool getTimerPaused();
     void updateTimer();
@@ -24,6 +25,8 @@ private:
     bool timerActive = false;
     bool timerPaused = false;
     unsigned long lastUpdateMillis = 0;
+    int currentMin = 0;
+    int currentSec = 0;
     void displayText(const char* text, const char* param1, const char* param2, const char* param3, bool flag);
 };
 

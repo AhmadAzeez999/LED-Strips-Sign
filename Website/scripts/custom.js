@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function()
                         })
                     });
                 }   
-                await new Promise(resolve => setTimeout(resolve, 5000));
+                await new Promise(resolve => setTimeout(resolve, 1000));
             }
             setTimeout(function(){
                 sendBtn.disabled = false;
@@ -223,7 +223,8 @@ document.addEventListener('DOMContentLoaded', function()
             }, 1000);
 
         }
-        else{
+        else
+        {
             const resp =  await fetch(`${API_URL}/dashboard/post`,
                 {
                     method: 'POST',
@@ -231,6 +232,7 @@ document.addEventListener('DOMContentLoaded', function()
                     body: JSON.stringify(
                     {
                         "command": "custom",
+                        "param": "start",
                         "data": f_list
                     })
             });

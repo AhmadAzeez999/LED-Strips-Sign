@@ -58,7 +58,6 @@ async function killServer()
 		if (response.status === 200)
 		{
 			alert('Server stopped successfully');
-			document.querySelector('.control-panel').innerHTML = '<h1>Server Stopped</h1><p>The server has been shutdown. Please close this window.</p>';
 		}
 		else
 		{

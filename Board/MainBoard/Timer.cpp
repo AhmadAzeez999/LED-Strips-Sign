@@ -4,88 +4,101 @@
 #include "Display.h"
 
 // Constructor
-Timer::Timer() : rtc() {
- 
-}
+Timer::Timer() : rtc() {}
 
 void Timer::setupRTC()
 {
-   if (!rtc.begin()) {
-        Serial.println("Couldn't find RTC");
-        while (1); // freeze the program
-    }
+  if (!rtc.begin())
+  {
+    Serial.println("Couldn't find RTC");
+    while (1); // freeze the program
+  }
 
-    if (rtc.lostPower()) {
-        Serial.println("RTC lost power, setting time!");
-        rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));  // syncs with PC compile time
-    }
+  if (rtc.lostPower())
+  {
+    Serial.println("RTC lost power, setting time!");
+    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));  // syncs with PC compile time
+  }
 }
 
-void Timer::startTimer(int minutes, int seconds) {
-    remainingTime = TimeSpan(0, 0, minutes, seconds);
+void Timer::startTimer(int minutes, int seconds)
+{
+  currentMin = minutes;
+  currentSec = seconds;
+
+  remainingTime = TimeSpan(0, 0, minutes, seconds);
+  targetTime = rtc.now() + remainingTime;
+  timerActive = true;
+  timerPaused = false;
+  Serial.println(rtc.now().timestamp());
+}
+
+void Timer::pauseTimer()
+{
+  if (timerActive && !timerPaused)
+  {
+    remainingTime = targetTime - rtc.now();
+    timerPaused = true;
+  }
+}
+
+void Timer::resumeTimer()
+{
+  if (timerActive && timerPaused)
+  {
     targetTime = rtc.now() + remainingTime;
-    timerActive = true;
     timerPaused = false;
-    Serial.println(rtc.now().timestamp());
+  }
 }
 
-void Timer::pauseTimer() {
-    if (timerActive && !timerPaused) {
-        remainingTime = targetTime - rtc.now();
-        timerPaused = true;
-    }
-}
-
-void Timer::resumeTimer() {
-    if (timerActive && timerPaused) {
-        targetTime = rtc.now() + remainingTime;
-        timerPaused = false;
-    }
-}
-
-void Timer::resetTimer(int minutes, int seconds)
+void Timer::resetTimer()
 {
   if (timerActive)
   {
-    remainingTime = TimeSpan(0, 0, minutes, seconds);
+    remainingTime = TimeSpan(0, 0, currentMin, currentSec);
     targetTime = rtc.now() + remainingTime;
     timerActive = true;
     timerPaused = false;
   }
 }
 
-void Timer::stopTimer() {
-    timerActive = false;
-    timerPaused = false;
-    Display::getInstance().displayText("STOP", "", "static", "yes");
+void Timer::stopTimer()
+{
+  timerActive = false;
+  timerPaused = false;
+  Display::getInstance().displayText("STOP", "", "static", "yes");
 }
 
-void Timer::updateTimer() {
-    if (!timerActive || timerPaused) return;
+void Timer::updateTimer()
+{
+  if (!timerActive || timerPaused) return;
+  
+  if (millis() - lastUpdateMillis >= 1000)
+  {
+    DateTime now = rtc.now();
+    TimeSpan remaining = targetTime - now;
+    Serial.println(remaining.minutes());
+    Serial.println(remaining.totalseconds());
+    Serial.println(targetTime.secondstime());
+    Serial.println(now.timestamp());
     
 
-    if (millis() - lastUpdateMillis >= 1000) {
-        DateTime now = rtc.now();
-        TimeSpan remaining = targetTime - now;
-        Serial.println(remaining.minutes());
-        Serial.println(remaining.totalseconds());
-        Serial.println(targetTime.secondstime());
-        Serial.println(now.timestamp());
-        
-
-        if (remaining.totalseconds() <= 0) {
-            Display::getInstance().displayText("0:00", "", "static", "yes");
-            timerActive = false;
-        } else {
-          int mins = max(0, remaining.minutes());
-          int secs = max(0, remaining.seconds());
-          char text[8];
-          sprintf(text, "%d+:%02d", mins, secs);
-          Display::getInstance().displayText(text, "", "static", "yes");
-        }
-
-        lastUpdateMillis = millis();
+    if (remaining.totalseconds() <= 0)
+    {
+        Display::getInstance().displayText("0:00", "", "static", "yes");
+        timerActive = false;
     }
+    else
+    {
+      int mins = max(0, remaining.minutes());
+      int secs = max(0, remaining.seconds());
+      char text[8];
+      sprintf(text, "%d+:%02d", mins, secs);
+      Display::getInstance().displayText(text, "", "static", "yes");
+    }
+
+    lastUpdateMillis = millis();
+  }
 }
 
 bool Timer::getTimerRunning()

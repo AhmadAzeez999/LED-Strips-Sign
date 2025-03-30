@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () =>
     const input2 = document.getElementById("message2");
     const charCount = document.getElementById("char-count");
     const charCount2 = document.getElementById("char-count2");
-    let maxChars = 8;
+    let maxChars = 5;
 
     // For top and bottom display
     let topBottomElements = document.querySelectorAll('.with-top-bottom');
@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () =>
         if (animation === "static")
         {
             if (isBig === "yes")
-                maxChars = 8;
+                maxChars = 5;
             else if (isBig === "no")
                 maxChars = 20;
 
@@ -74,7 +74,7 @@ document.addEventListener("DOMContentLoaded", () =>
             if (animationChild === "scrolS")
             {
                 if (isBig === "yes")
-                    maxChars = 8;
+                    maxChars = 5;
                 else if (isBig === "no")
                     maxChars = 20;
     
