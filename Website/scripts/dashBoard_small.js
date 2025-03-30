@@ -151,31 +151,6 @@ async function pause_and_resume_timer()
 	}, 4000)
 }
 
-async function reset_timer()
-{
-	let r_timer = document.querySelector('.btn-reset');
-    r_timer.disabled = true;
-	r_timer.style.cursor = "not-allowed";
-	const response = await fetch(`${API_URL}/dashboard/post`,
-	{
-		method: 'POST',
-		headers: {"Content-Type": "application/json"},
-		body: JSON.stringify(
-		{
-			"command": "rTimer"
-		})
-	});
-
-	if (response.status != 200)
-	{
-		alert('Failed to send message');
-	}
-	setTimeout(function(){
-		r_timer.disabled = false;
-		r_timer.style.cursor = "pointer";
-	}, 4000)
-}
-
 async function display_time()
 {
 	let d_time = document.getElementById("timeOfDayBtn");
