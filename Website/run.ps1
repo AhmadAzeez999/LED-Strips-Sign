@@ -1,13 +1,37 @@
-﻿$url = "http://127.0.0.1:8080/";
+﻿
 $http = [System.Net.HttpListener]::new();
-$http.Prefixes.Add($url);
-$http.Start();
 
-# Serial port setup 
+$server_port = 8080
+if(Get-NetTCPConnection -LocalPort $server_port -ErrorAction SilentlyContinue){
+    do{
+    $server_port = Read-Host "Enter Server Port"
+    if ([string]::IsNullOrWhiteSpace($server_port) -or $server_port -match '\D') {
+        Write-Host "Enter a valid port"
+    }
+    elseif ([int]::Parse($server_port) -ge 1 -and [int]::Parse($server_port) -le 65535){
+        
+        if(Get-NetTCPConnection -LocalPort $server_port -ErrorAction SilentlyContinue){
+            Write-Host "Port is already in use, enter a different one"
+        }
+        else{
+            break
+        }
+    }
+    else{
+        Write-Host "Invalid Port"
+    }
+}
+while($true)
+}
+
+
 $enteredPort = Read-Host "Enter Comm PORT"
 $signPort = "COM$enteredPort"
 $baudRate = Read-Host "Enter Baud Rate"
-
+$url = "http://127.0.0.1:$server_port/";
+Write-Host $url
+$http.Prefixes.Add($url);
+$http.Start();
 
 $out_port_a = new-Object System.IO.Ports.SerialPort $signPort,$baudRate,None,8,one
 $out_port_a.open()

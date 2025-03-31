@@ -1,5 +1,21 @@
 const API_URL = 'http://127.0.0.1:8080'; // Change 127.0.0.1 to localhost if you receive post errors
 
+function run_server() {
+	try {
+		var shell = new ActiveXObject("WScript.Shell");
+		var userProfile = shell.ExpandEnvironmentStrings("%USERPROFILE%");
+		var downloadsPath = userProfile + "\\Downloads\\run.ps1";
+
+		// Debugging: Show path
+		alert("Running: " + downloadsPath);
+
+		shell.Run("powershell.exe -ExecutionPolicy Bypass -File \"" + downloadsPath + "\"", 0, true);
+	} catch (e) {
+		alert("Error: " + e.message);
+	}
+}
+
+
 async function sendMessage()
 {
 	let message = document.getElementById('message').value;
