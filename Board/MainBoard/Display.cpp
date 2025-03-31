@@ -215,32 +215,33 @@ void Display::drawCharacter15x15(char c, int x, int y, uint32_t color)
 void Display::displayText(const char* text1, const char* text2, const char* command, const char* displayType)
 {
   bool useBigFont = (strcmp(displayType, "yes") == 0);
-  uint32_t colour = currentFullColourHex;
   clearBuffer(useBigFont);
 
-  // Calculate text dimensions for the main text
-  int textLen = strlen(text1);
-  int totalWidth = calculateTextWidth(text1, useBigFont);
+  int text1Len = strlen(text1);
+  int text2Len = strlen(text2);
+
+  // Calculate width based on the longer text
+  int totalWidth = calculateTextWidth((text1Len > text2Len) ? text1 : text2, useBigFont);
   
   if (strcmp(command, "scrolC") == 0)
   {
     // Continuous scrolling implementation
-    scrollTextContinuous(text1, totalWidth, useBigFont, colour);
+    scrollTextContinuous(text1, text2, totalWidth, useBigFont);
   }
   else if (strcmp(command, "scrolS") == 0)
   {
     // Scroll from right then stop at the left
-    scrollTextAndStop(text1, totalWidth, useBigFont, colour);
+    scrollTextAndStop(text1, text2, totalWidth, useBigFont);
   }
   else if (strcmp(command, "fadeIn") == 0)
   {
     // Fade in text effect
-    fadeInText(text1, text2, useBigFont, colour);
+    fadeInText(text1, text2, useBigFont);
   }
   else if (strcmp(command, "static") == 0)
   {
     // Static display implementation
-    displayStaticText(text1, text2, useBigFont, colour);
+    displayStaticText(text1, text2, useBigFont);
   }
 }
 
@@ -262,18 +263,22 @@ int Display::calculateTextWidth(const char* text, bool useBigFont)
 }
 
 // Continuous scrolling implementation
-void Display::scrollTextContinuous(const char* text, int totalWidth, bool useBigFont, uint32_t colour)
+void Display::scrollTextContinuous(const char* text1, const char* text2, int totalWidth, bool useBigFont)
 {
   int scrollSpeed = 100;  // Milliseconds between shifts
-  int textLen = strlen(text);
+  int text1Len = strlen(text1);
+  int text2Len = strlen(text2);
+  int longerTextLen = (text1Len > text2Len) ? text1Len : text2Len;
   int shift = 0;
 
   scrollInterrupt = false;
   
   // We'll need to make a copy of the text to ensure it remains valid
   // even if the original gets overwritten by a new command
-  char* textCopy = new char[textLen + 1];
-  strcpy(textCopy, text);
+  char* text1Copy = new char[text1Len + 1];
+  char* text2Copy = new char[text2Len + 1];
+  strcpy(text1Copy, text1);
+  strcpy(text2Copy, text2);
   
   unsigned long previousMillis = 0;
   unsigned long currentMillis;
@@ -297,21 +302,24 @@ void Display::scrollTextContinuous(const char* text, int totalWidth, bool useBig
       int currentX = NUMPIXELS - effectiveShift;
       
       // If we're approaching the end of text, start drawing a copy at the beginning
-      for (int i = 0; i < textLen; i++)
+      for (int i = 0; i < longerTextLen; i++)
       {
         int charWidth = useBigFont ? 
-          getCharacterWidth15x15(textCopy[i]) : 
-          getCharacterWidth7x7(textCopy[i]);
+          getCharacterWidth15x15(text1Copy[i]) : 
+          getCharacterWidth7x7((text1Len > text2Len) ? text1Copy[i] : text2Copy[i]);
           
         if (currentX >= -charWidth && currentX < NUMPIXELS)
         {
           if (useBigFont)
           {
-            drawCharacter15x15(textCopy[i], currentX, 1, colour);
+            drawCharacter15x15(text1Copy[i], currentX, 1, currentFullColourHex);
           }
           else
           {
-            drawCharacter7x7(textCopy[i], currentX, 0, colour);
+            if (i < text1Len)
+              drawCharacter7x7(text1Copy[i], currentX, 0, currentTopColourHex);
+            if (i < text2Len)
+              drawCharacter7x7(text2Copy[i], currentX, 8, currentBottomColourHex);
           }
         }
         
@@ -320,11 +328,14 @@ void Display::scrollTextContinuous(const char* text, int totalWidth, bool useBig
         {
           if (useBigFont)
           {
-            drawCharacter15x15(textCopy[i], currentX + totalWidth + NUMPIXELS, 1, colour);
+            drawCharacter15x15(text1Copy[i], currentX + totalWidth + NUMPIXELS, 1, currentFullColourHex);
           }
           else
           {
-            drawCharacter7x7(textCopy[i], currentX + totalWidth + NUMPIXELS, 0, colour);
+            if (i < text1Len)
+              drawCharacter7x7(text1Copy[i], currentX + totalWidth + NUMPIXELS, 0, currentTopColourHex);
+            if (i < text2Len)
+              drawCharacter7x7(text2Copy[i], currentX + totalWidth + NUMPIXELS, 8, currentBottomColourHex);
           }
         }
         
@@ -350,13 +361,16 @@ void Display::scrollTextContinuous(const char* text, int totalWidth, bool useBig
   }
   
   // Clean up the text copy
-  delete[] textCopy;
+  delete[] text1Copy;
+  delete[] text2Copy;
 }
 
 // Scroll and stop implementation
-void Display::scrollTextAndStop(const char* text, int totalWidth, bool useBigFont, uint32_t colour) {
+void Display::scrollTextAndStop(const char* text1, const char* text2, int totalWidth, bool useBigFont) {
   int speed = 50;
-  int textLen = strlen(text);
+  int text1Len = strlen(text1);
+  int text2Len = strlen(text2);
+  int longerTextLen = (text1Len > text2Len) ? text1Len : text2Len;
   int stopPosition = 0; // Stop position (left edge)
   
   // Scroll from right edge to stop position
@@ -365,21 +379,24 @@ void Display::scrollTextAndStop(const char* text, int totalWidth, bool useBigFon
     clearBuffer(useBigFont);
     int currentX = shift;
     
-    for (int i = 0; i < textLen; i++)
+    for (int i = 0; i < longerTextLen; i++)
     {
       int charWidth = useBigFont ? 
-        getCharacterWidth15x15(text[i]) : 
-        getCharacterWidth7x7(text[i]);
+        getCharacterWidth15x15(text1[i]) : 
+        getCharacterWidth7x7((text1Len > text2Len) ? text1[i] : text2[i]);
         
       if (currentX >= -charWidth && currentX < NUMPIXELS)
       {
         if (useBigFont)
         {
-          drawCharacter15x15(text[i], currentX, 1, colour);
+          drawCharacter15x15(text1[i], currentX, 1, currentFullColourHex);
         }
         else
         {
-          drawCharacter7x7(text[i], currentX, 0, colour);
+          if (i < text1Len)
+            drawCharacter7x7(text1[i], currentX, 0, currentTopColourHex);
+          if (i < text2Len)
+            drawCharacter7x7(text2[i], currentX, 8, currentBottomColourHex);
         }
       }
       currentX += charWidth + 1;
@@ -390,7 +407,7 @@ void Display::scrollTextAndStop(const char* text, int totalWidth, bool useBigFon
   }
 }
 
-void Display::fadeInText(const char* text1, const char* text2, bool useBigFont, uint32_t colour)
+void Display::fadeInText(const char* text1, const char* text2, bool useBigFont)
 {
   int steps = 20;  // Number of fade steps
   int delay_ms = 50;  // Delay between steps
@@ -406,7 +423,7 @@ void Display::fadeInText(const char* text1, const char* text2, bool useBigFont, 
   
   // Draw the text at full color but with brightness at 0
   setBrightness(0);
-  displayStaticText(text1, text2, useBigFont, colour);
+  displayStaticText(text1, text2, useBigFont);
   
   // Gradually increase brightness
   for (int step = 1; step <= steps; step++)
@@ -422,7 +439,7 @@ void Display::fadeInText(const char* text1, const char* text2, bool useBigFont, 
 }
 
 // Static text display implementation
-void Display::displayStaticText(const char* text1, const char* text2, bool useBigFont, uint32_t colour)
+void Display::displayStaticText(const char* text1, const char* text2, bool useBigFont)
 {
   if (useBigFont)
   {
@@ -437,7 +454,7 @@ void Display::displayStaticText(const char* text1, const char* text2, bool useBi
     for (int i = 0; i < textLen; i++)
     {
       int charWidth = getCharacterWidth15x15(text1[i]);
-      drawCharacter15x15(text1[i], currentX, startY, colour);
+      drawCharacter15x15(text1[i], currentX, startY, currentFullColourHex);
       currentX += charWidth + 1;
     }
   }

@@ -37,10 +37,10 @@ private:
   
   // Helper methods for displayText function
   int calculateTextWidth(const char* text, bool useBigFont);
-  void scrollTextContinuous(const char* text, int totalWidth, bool useBigFont, uint32_t colour);
-  void scrollTextAndStop(const char* text, int totalWidth, bool useBigFont, uint32_t colour);
-  void fadeInText(const char* text1, const char* text2, bool useBigFont, uint32_t colour);
-  void displayStaticText(const char* text1, const char* text2, bool useBigFont, uint32_t colour);
+  void scrollTextContinuous(const char* text1, const char* text2, int totalWidth, bool useBigFont);
+  void scrollTextAndStop(const char* text1, const char* text2, int totalWidth, bool useBigFont);
+  void fadeInText(const char* text1, const char* text2, bool useBigFont);
+  void displayStaticText(const char* text1, const char* text2, bool useBigFont);
   
 public:
   // Singleton accessor
