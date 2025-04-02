@@ -176,17 +176,17 @@ void updateSettings(String input)
   String fullColour = input.substring(thirdComma + 2, closeBracket);
   
   // Convert hex color strings to uint32_t
-  uint32_t topColor = (uint32_t)strtoul(topColour.c_str() + 1, NULL, 16);
-  uint32_t bottomColor = (uint32_t)strtoul(bottomColour.c_str() + 1, NULL, 16);
-  uint32_t fullColor = (uint32_t)strtoul(fullColour.c_str() + 1, NULL, 16);
+  uint32_t topColr = (uint32_t)strtoul(topColour.c_str() + 1, NULL, 16);
+  uint32_t bottomColr = (uint32_t)strtoul(bottomColour.c_str() + 1, NULL, 16);
+  uint32_t fullColr = (uint32_t)strtoul(fullColour.c_str() + 1, NULL, 16);
   
   // Set brightness
   display.setBrightness(brightness);
   
   // Set color settings
-  display.setTopColour(topColor);
-  display.setBottomColour(bottomColor);
-  display.setFullColour(fullColor);
+  display.setTopColour(topColr);
+  display.setBottomColour(bottomColr);
+  display.setFullColour(fullColr);
 
   display.displayText("Done", "", "static", "yes");
 }
