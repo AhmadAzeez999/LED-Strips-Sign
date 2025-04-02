@@ -31,7 +31,7 @@ void setup()
   Serial.begin(9600);
   timer.setupRTC();
   remote.setupRemote();
-  display.setup(4);
+  display.setup(remote.getBrightness());
 
   display.displayText("LED Strips", "Sign", "static", "no");
 
