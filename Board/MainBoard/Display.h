@@ -49,8 +49,6 @@ public:
   // Delete copy constructor and assignment operator
   Display(const Display&) = delete;
   void operator=(const Display&) = delete;
-
-  void displayStaticText(const char* text1, const char* text2, bool useBigFont);
  
   // Display setup
   void setup(int brightness);

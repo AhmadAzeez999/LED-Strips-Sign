@@ -39,8 +39,8 @@ $out_port_a.open()
 # Log ready message to terminal
 if ($http.IsListening) 
 {
-    write-host "Connected to the Scoreboard!"
-    write-host "Please Minimize this Window!"
+    Write-Host "Connected to the Scoreboard!" -ForegroundColor Black -BackgroundColor Green
+    Write-Host "Please Minimize this Window!" -ForegroundColor Black -BackgroundColor Green
 }
 
 # Helper functions
