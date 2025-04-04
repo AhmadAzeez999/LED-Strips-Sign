@@ -87,7 +87,7 @@ void parseInput(String input)
   {
     int openBracket = input.indexOf('[');
     String chunckPos = input.substring(secondDollar + 1, openBracket);
-    display.displayCustomPixels(input, chunckPos);
+    display.displayCustomPixels(input.c_str(), chunckPos.c_str());
   }
   else if (command == "settns")
   {

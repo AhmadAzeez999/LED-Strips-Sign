@@ -506,64 +506,90 @@ void Display::setFullColour(const uint32_t colourHex)
   currentFullColourHex = colourHex;
 }
 
-void Display::displayCustomPixels(String input, String chunckPos)
+void Display::displayCustomPixels(const char* input, const char* chunkPos)
 {
-  // Find the opening and closing brackets
-  int openBracket = input.indexOf('[');
-  int closeBracket = input.indexOf(']');
- 
-  // Extract the coordinates string
-  String coordString = input.substring(openBracket + 1, closeBracket);
-
-  Serial.print(chunckPos);
- 
-  // Clear the display first
-  if (chunckPos == "start")
+  // Clear the display if this is the first chunk
+  if (strcmp(chunkPos, "start") == 0)
   {
     clearBuffer(true);
   }
- 
-  // Parse the coordinates
-  int startIndex = 0;
-  int endIndex = 0;
- 
-  while (startIndex < coordString.length())
+  
+  // Print chunk position for debugging
+  Serial.println(chunkPos);
+  
+  // Find the opening bracket
+  const char* start = strchr(input, '[');
+  if (!start) return; // Exit if no opening bracket found
+  start++; // Move past the opening bracket
+  
+  // Process each coordinate pair
+  char coordBuffer[30]; // Buffer for holding one coordinate set
+  int bufferIndex = 0;
+  bool inCoordPair = false;
+  
+  for (const char* p = start; *p && *p != ']'; p++)
   {
-    // Find the next coordinate pair
-    endIndex = coordString.indexOf(')', startIndex);
-   
-    if (endIndex == -1)
-      break;
-   
-    // Extract the coordinate pair
-    String coordPair = coordString.substring(startIndex, endIndex + 1);
-   
-    // Remove parentheses
-    coordPair.replace("(", "");
-    coordPair.replace(")", "");
-   
-    // Split the coordinate pair into x, y, and color
-    int firstCommaIndex = coordPair.indexOf(',');
-    int secondCommaIndex = coordPair.indexOf(',', firstCommaIndex + 1);
-   
-    if (firstCommaIndex != -1 && secondCommaIndex != -1)
+    if (*p == '(')
     {
-      int x = coordPair.substring(0, firstCommaIndex).toInt();
-      int y = coordPair.substring(firstCommaIndex + 1, secondCommaIndex).toInt();
-      
-      // Parse color (assuming hex color format like FF0000 for red)
-      String colourStr = coordPair.substring(secondCommaIndex + 1);
-      colourStr.replace("#", "0x");
-      unsigned long colour = strtoul(colourStr.c_str(), NULL, 16);
-      
-      // Set the pixel with parsed color
-      setPixel(y, x, colour);
+      inCoordPair = true;
+      bufferIndex = 0;
     }
-   
-    // Move to next coordinate
-    startIndex = endIndex + 2;
+    else if (*p == ')')
+    {
+      inCoordPair = false;
+      coordBuffer[bufferIndex] = '\0'; // Null terminate
+      
+      // Parse the coordinate pair
+      char* xStr = coordBuffer;
+      char* yStr = NULL;
+      char* colorStr = NULL;
+      
+      // Find first comma
+      char* firstComma = strchr(coordBuffer, ',');
+      if (firstComma)
+      {
+        *firstComma = '\0'; // Split string
+        yStr = firstComma + 1;
+        
+        // Find second comma
+        char* secondComma = strchr(yStr, ',');
+        if (secondComma)
+        {
+          *secondComma = '\0'; // Split string
+          colorStr = secondComma + 1;
+        }
+      }
+      
+      // If we have all three components
+      if (xStr && yStr && colorStr)
+      {
+        int x = atoi(xStr);
+        int y = atoi(yStr);
+        
+        // Handle hex color with or without # prefix
+        unsigned long color = 0;
+        if (strncmp(colorStr, "#", 1) == 0)
+        {
+          color = strtoul(colorStr + 1, NULL, 16);
+        }
+        else
+        {
+          color = strtoul(colorStr, NULL, 16);
+        }
+        
+        // Set the pixel with parsed color (bounds checking recommended)
+        if (x >= 0 && y >= 0)
+        {
+          setPixel(y, x, color);
+        }
+      }
+    }
+    else if (inCoordPair && bufferIndex < sizeof(coordBuffer) - 1)
+    {
+      coordBuffer[bufferIndex++] = *p;
+    }
   }
-
-  // Update LED
+  
+  // Update LEDs
   updateLEDs();
 }

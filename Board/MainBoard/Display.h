@@ -66,6 +66,6 @@ public:
   void setBottomColour(const uint32_t colourHex);
   void setFullColour(const uint32_t colourHex);
   // For custom drawings
-  void displayCustomPixels(String input, String chunckPos);
+  void displayCustomPixels(const char* input, const char* chunckPos);
 };
 #endif // DISPLAY_H
