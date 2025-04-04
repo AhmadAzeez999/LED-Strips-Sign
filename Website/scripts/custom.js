@@ -72,7 +72,8 @@ document.addEventListener('DOMContentLoaded', function()
         let pixel = e.target;
         
         // Ensure we're drawing on a pixel
-        if (!pixel.classList.contains('pixel')) return;
+        if (!pixel.classList.contains('pixel'))
+            return;
         
         let row = pixel.dataset.row;
         let col = pixel.dataset.col;
@@ -185,7 +186,8 @@ document.addEventListener('DOMContentLoaded', function()
     });
     
     // Send button functionality (unchanged from original)
-    sendBtn.addEventListener('click', async (e) => {
+    sendBtn.addEventListener('click', async (e) =>
+    {
         e.preventDefault();
         sendBtn.disabled = true;
         sendBtn.style.cursor = "not-allowed";
@@ -193,8 +195,10 @@ document.addEventListener('DOMContentLoaded', function()
         if(f_list.length > 15){
             for (let i = 0; i < f_list.length; i += 15) {
                 let chunk = f_list.slice(i, i + 15).join(',');
-                if(i === 0){
-                    await fetch(`${API_URL}/dashboard/post`, {
+                if(i === 0)
+                {
+                    await fetch(`${API_URL}/dashboard/post`,
+                    {
                         method: 'POST',
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
@@ -204,8 +208,10 @@ document.addEventListener('DOMContentLoaded', function()
                         })
                     });
                 }
-                else{
-                    await fetch(`${API_URL}/dashboard/post`, {
+                else
+                {
+                    await fetch(`${API_URL}/dashboard/post`,
+                    {
                         method: 'POST',
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
@@ -217,7 +223,8 @@ document.addEventListener('DOMContentLoaded', function()
                 }   
                 await new Promise(resolve => setTimeout(resolve, 1000));
             }
-            setTimeout(function(){
+            setTimeout(function()
+            {
                 sendBtn.disabled = false;
                 sendBtn.style.cursor = "pointer";
             }, 1000);
@@ -226,21 +233,22 @@ document.addEventListener('DOMContentLoaded', function()
         else
         {
             const resp =  await fetch(`${API_URL}/dashboard/post`,
+            {
+                method: 'POST',
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(
                 {
-                    method: 'POST',
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify(
-                    {
-                        "command": "custom",
-                        "param": "start",
-                        "data": f_list
-                    })
+                    "command": "custom",
+                    "param": "start",
+                    "data": f_list
+                })
             });
             if (resp.status != 200)
             {
                 alert('Failed to send message');
             }
-            setTimeout(function(){
+            setTimeout(function()
+            {
                 sendBtn.disabled = false;
                 sendBtn.style.cursor = "pointer";
             }, 5000);
