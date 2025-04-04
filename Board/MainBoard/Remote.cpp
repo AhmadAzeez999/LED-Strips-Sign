@@ -4,8 +4,6 @@
 #include "Timer.h"
 
 Timer timers;
-
-
 #define IR_PIN 10
 
 RemoteControl::RemoteControl() : bright(4), remoteStatus(false), enteredValue(0), minu(0), fIndex(0), tbIndex(0), timerInputMode(false) {}
@@ -42,6 +40,7 @@ void RemoteControl::adjustBrightness(int change)
     }
     
     Display::getInstance().updateLEDs();
+
     for (int x = 0; x < NUM_STRIPS; x++)
     {
         Display::getInstance().setBrightness(bright);
@@ -55,7 +54,6 @@ void RemoteControl::toggleRemote(String remoteCode)
   {
     remoteStatus = !remoteStatus;
     Display::getInstance().clearBuffer(true);
-    Serial.println(remoteStatus ? "RM ON" : "RM OFF");
     Display::getInstance().displayText(remoteStatus ? "RMON" : "RMOFF", "", "static", "yes");
     Display::getInstance().updateLEDs();
     delay(500);
@@ -78,6 +76,7 @@ void RemoteControl::handleTimerCodes(String remoteCode)
         }
     }
   }
+
   if (remoteCode == "9768" && timers.getTimerRunning() == false)
   {
     Serial.println(minu);
@@ -112,87 +111,80 @@ void RemoteControl::setDefaultMessage(String remoteCode)
 void RemoteControl::useRemote()
 {
   timers.updateTimer();
-  
-    if (IrReceiver.decode())
-    {
-        uint32_t remoteCode = IrReceiver.decodedIRData.decodedRawData;
-        Serial.print("Raw Hex Code: ");
-        Serial.println(remoteCode, HEX);
 
-        String remoteValue = String(IrReceiver.decodedIRData.decodedRawData, HEX).substring(0, 4);
-        Serial.println(remoteValue);
+  if (IrReceiver.decode())
+  {
+      uint32_t remoteCode = IrReceiver.decodedIRData.decodedRawData;
+      Serial.print("Raw Hex Code: ");
+      Serial.println(remoteCode, HEX);
 
-        toggleRemote(remoteValue);
-        if (remoteStatus)
+      String remoteValue = String(IrReceiver.decodedIRData.decodedRawData, HEX).substring(0, 4);
+
+      toggleRemote(remoteValue);
+
+      if (remoteStatus)
+      {
+        setDefaultMessage(remoteValue);
+          
+        handleTimerCodes(remoteValue);
+
+        if(remoteValue == "9f60")
         {
-          
-            setDefaultMessage(remoteValue);
-          
-            handleTimerCodes(remoteValue);
-
-            if(remoteValue == "9f60")
-            {
-              tbIndex = (tbIndex + 1) %6;
-              changeTBColourScheme();
-              
-            }
-            else if(remoteValue == "9e61")
-            {
-              tbIndex = tbIndex - 1;
-              changeTBColourScheme();
-            }
-            
-            else if(remoteValue == "9a65")
-            {
-              fIndex = fIndex - 1;
-              changeFColourScheme();
-              Serial.println(fIndex);
-            }
-            else if(remoteValue == "9d62")
-            {
-              fIndex = fIndex + 1;
-              changeFColourScheme();
-            }
-
-            if(tbIndex > 5)
-            {
-              tbIndex = 0;
-              changeTBColourScheme();
-            } 
-            else if(tbIndex < 0)
-            {
-              tbIndex = 5;
-              changeTBColourScheme();
-            } 
-
-            if(fIndex > 2) 
-            {
-              fIndex = 0;
-              changeFColourScheme();
-            }
-            else if(fIndex < 0) 
-            {
-              fIndex = 2;
-              changeFColourScheme();
-            }
-            if (remoteValue == "f807") adjustBrightness(1);
-            else if (remoteValue == "f40b") adjustBrightness(-1);
-
-            if(remoteValue == "946b")
-            {
-              Display::getInstance().displayText("00+:00", "", "static", "yes");
-              timerInputMode = true;
-              
-              manualTimerInput(); // while loop
-              delay(500);
-            }
-          
+          tbIndex = (tbIndex + 1) %6;
+          changeTBColourScheme();   
+        }
+        else if(remoteValue == "9e61")
+        {
+          tbIndex = tbIndex - 1;
+          changeTBColourScheme();
+        }
+        else if(remoteValue == "9a65")
+        {
+          fIndex = fIndex - 1;
+          changeFColourScheme();
+        }
+        else if(remoteValue == "9d62")
+        {
+          fIndex = fIndex + 1;
+          changeFColourScheme();
         }
 
-        //delay(500);
+        if(tbIndex > 5)
+        {
+          tbIndex = 0;
+          changeTBColourScheme();
+        } 
+        else if(tbIndex < 0)
+        {
+          tbIndex = 5;
+          changeTBColourScheme();
+        } 
+
+        if(fIndex > 2) 
+        {
+          fIndex = 0;
+          changeFColourScheme();
+        }
+        else if(fIndex < 0) 
+        {
+          fIndex = 2;
+          changeFColourScheme();
+        }
+
+        if (remoteValue == "f807") adjustBrightness(1);
+        else if (remoteValue == "f40b") adjustBrightness(-1);
+
+        if(remoteValue == "946b")
+        {
+          Display::getInstance().displayText("00+:00", "", "static", "yes");
+          timerInputMode = true;
+          manualTimerInput(); // while loop
+          delay(500);
+        }
+          
+      }
         IrReceiver.resume();
-    }
-    
+    }  
 }
 
 uint8_t RemoteControl::getBrightness()
@@ -205,8 +197,11 @@ void RemoteControl::manualTimerInput()
 {
   char num[11] = ""; // Supports up to 10 digits + null terminator
   String inputToSend = "";
-  while(timerInputMode) {
+
+  while(timerInputMode) 
+  {
     IrReceiver.resume();
+
     if(IrReceiver.decode())
     {
       String remoteCode = String(IrReceiver.decodedIRData.decodedRawData, HEX).substring(0, 4);
@@ -231,6 +226,7 @@ void RemoteControl::manualTimerInput()
       else
       {
         size_t len = strlen(num);
+
         if (len < 4)
         {
           char digitChar = '0' + digit; // Convert to char
@@ -270,13 +266,7 @@ void RemoteControl::manualTimerInput()
             Serial.println(text);
             Display::getInstance().displayText(text, "", "static", "yes");
             inputToSend = "[" + String(text) + "]";
-          }
-          // Display the digit
-          
-        }
-        else
-        {
-          Serial.println("Maximum digit limit reached.");
+          } 
         }
       }
     }
@@ -289,8 +279,6 @@ int RemoteControl::getNumberFromIR(String command)
   {
     if (command == timerCodes[i])
     {
-      Serial.print("Detected Number: ");
-      Serial.println(i);
       if(i == 9)
       {
         return 0;
