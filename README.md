@@ -1,7 +1,7 @@
-# LED Strips Sign
+# LED Strips Sign Board
 
 ## Overview
-The LED Strips Sign is a **web and remote-controlled scoreboard** powered by an **Arduino Mega**. It can display text and time, with a web interface for easy control and customization.
+The LED Strips Sign Board is a **web and remote-controlled scoreboard** powered by an **Arduino Mega**. It can display text and time, with a web interface for easy control and customization.
 
 ## Key Features
 - **Text Display** – Show messages on the scoreboard.
