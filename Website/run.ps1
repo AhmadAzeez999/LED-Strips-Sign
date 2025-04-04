@@ -88,8 +88,8 @@ function Add-CorsHeaders($response)
 {
     $response.AppendHeader("Access-Control-Allow-Origin", "*")
     $response.AppendHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-    # $response.AppendHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With")
-    # $response.AppendHeader("Access-Control-Max-Age", "86400")
+    $response.AppendHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With")
+    $response.AppendHeader("Access-Control-Max-Age", "86400")
 }
 
 # Main loop
