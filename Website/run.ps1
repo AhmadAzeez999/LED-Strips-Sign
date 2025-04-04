@@ -5,19 +5,24 @@ $server_port = 8080
 if(Get-NetTCPConnection -LocalPort $server_port -ErrorAction SilentlyContinue){
     do{
     $server_port = Read-Host "Enter Server Port"
-    if ([string]::IsNullOrWhiteSpace($server_port) -or $server_port -match '\D') {
+    if ([string]::IsNullOrWhiteSpace($server_port) -or $server_port -match '\D')
+    {
         Write-Host "Enter a valid port"
     }
-    elseif ([int]::Parse($server_port) -ge 1 -and [int]::Parse($server_port) -le 65535){
+    elseif ([int]::Parse($server_port) -ge 1 -and [int]::Parse($server_port) -le 65535)
+    {
         
-        if(Get-NetTCPConnection -LocalPort $server_port -ErrorAction SilentlyContinue){
+        if(Get-NetTCPConnection -LocalPort $server_port -ErrorAction SilentlyContinue)
+        {
             Write-Host "Port is already in use, enter a different one"
         }
-        else{
+        else
+        {
             break
         }
     }
-    else{
+    else
+    {
         Write-Host "Invalid Port"
     }
 }
@@ -55,19 +60,24 @@ function send_display($data)
 function pad-text($value)
 {
     
-    if($value.command -eq "pTimer"){
+    if($value.command -eq "pTimer")
+    {
         return  "$" + $value.command + "$"
     }
-    elseif($value.command -eq "rTimer"){
+    elseif($value.command -eq "rTimer")
+    {
         return  "$" + $value.command  + "$"
     }
-    elseif($value.command -eq "settns"){
+    elseif($value.command -eq "settns")
+    {
         return "$" + $value.command + "$" +  "[" + $value.brightness + ", " +  $value.tcolor + ", " +  $value.bcolor + ", " + $value.fcolor + "]"
     }
-    elseif($value.command -eq "custom"){
+    elseif($value.command -eq "custom")
+    {
         return "$" + $value.command + "$" + $value.param + "[" + $value.data + "]"
     }
-    else{
+    else
+    {
         return "$" + $value.command + "$" + $value.isBig + "[" + $value.data + "]"
     }
 
@@ -78,8 +88,8 @@ function Add-CorsHeaders($response)
 {
     $response.AppendHeader("Access-Control-Allow-Origin", "*")
     $response.AppendHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-    $response.AppendHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With")
-    $response.AppendHeader("Access-Control-Max-Age", "86400")
+    # $response.AppendHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With")
+    # $response.AppendHeader("Access-Control-Max-Age", "86400")
 }
 
 # Main loop
@@ -88,7 +98,8 @@ while ($http.IsListening)
     $context = $http.GetContext()
     
     # Handle preflight OPTIONS requests
-    if ($context.Request.HttpMethod -eq 'OPTIONS') {
+    if ($context.Request.HttpMethod -eq 'OPTIONS')
+    {
   
         Add-CorsHeaders -response $context.Response
         $context.Response.StatusCode = 200
@@ -100,14 +111,17 @@ while ($http.IsListening)
     }
     
     # Handle POST requests to /dashboard/post
-    if ($context.Request.HttpMethod -eq 'POST' -and $context.Request.RawUrl -eq '/dashboard/post') {
+    if ($context.Request.HttpMethod -eq 'POST' -and $context.Request.RawUrl -eq '/dashboard/post')
+    {
         $FormContent = [System.IO.StreamReader]::new($context.Request.InputStream).ReadToEnd()
         $dataToSend = $FormContent | ConvertFrom-Json
         
-        if ($dataToSend.command -eq 'postRaw') {
+        if ($dataToSend.command -eq 'postRaw')
+        {
             send_display($dataToSend.data)
         }
-        else {
+        else
+        {
             $formattedData = pad-text($dataToSend)
             send_display($formattedData)
         }
@@ -122,7 +136,8 @@ while ($http.IsListening)
     }
     
     # Handle GET requests
-    if ($context.Request.HttpMethod -eq 'GET' -and $context.Request.RawUrl -eq '/kill') {
+    if ($context.Request.HttpMethod -eq 'GET' -and $context.Request.RawUrl -eq '/kill')
+    {
         Write-Host "Stopping the Server"
         Add-CorsHeaders -response $context.Response
         $context.Response.StatusCode = 200
@@ -134,10 +149,3 @@ while ($http.IsListening)
         break
     }
 }
-
-
-
-
-
-
-
