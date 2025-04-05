@@ -31,9 +31,10 @@ void setup()
   Serial.begin(9600);
   timer.setupRTC();
   remote.setupRemote();
-  display.setup(remote.getBrightness());
+  display.setup(100);
 
-  display.displayText("LED Strips", "Sign", "static", "no");
+  display.displayText("LED STRIPS", "SIGNBOARD", "static", "no");
+  // display.displayText("2+:00", "", "static", "yes");
 
   // parseInput("$custom$start[(0,0,#2309ec),(0,1,#2309ec),(0,2,#ffffff)]");
   // parseInput("$custom$no[(1,0,#2309ec),(2,0,#2309ec),(3,0,#ffffff)]");
@@ -190,4 +191,3 @@ void updateSettings(String input)
 
   display.displayText("Done", "", "static", "yes");
 }
-

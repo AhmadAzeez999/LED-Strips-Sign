@@ -128,10 +128,6 @@ while ($http.IsListening)
 
         Add-CorsHeaders -response $context.Response
         $context.Response.StatusCode = 200
-        $buffer = [System.Text.Encoding]::UTF8.GetBytes("Success")
-        $context.Response.ContentLength64 = $buffer.Length
-        $context.Response.OutputStream.Write($buffer, 0, $buffer.Length)
-        $context.Response.OutputStream.Close()
         continue
     }
     

@@ -81,12 +81,11 @@ void Timer::updateTimer()
     Serial.println(remaining.totalseconds());
     Serial.println(targetTime.secondstime());
     Serial.println(now.timestamp());
-    
 
     if (remaining.totalseconds() <= 0)
     {
-        Display::getInstance().displayText("0:00", "", "static", "yes");
-        timerActive = false;
+      Display::getInstance().displayText("0+:00", "", "static", "yes");
+      timerActive = false;
     }
     else
     {

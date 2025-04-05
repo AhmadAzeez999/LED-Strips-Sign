@@ -441,6 +441,56 @@ void Display::fadeInText(const char* text1, const char* text2, bool useBigFont)
 // Static text display implementation
 void Display::displayStaticText(const char* text1, const char* text2, bool useBigFont)
 {
+  bool isTimer = false;
+  int colonCount = 0;
+  for (int i = 0; i < strlen(text1); i++)
+  {
+    if (text1[i] == ':')
+    {
+      isTimer = true;
+      break;
+    } 
+    // if (!isdigit(text1[i]) && text1[i] != ':')
+    // {
+    //     isTimer = false;
+    //     break;
+    // }
+  }
+
+  // if (colonCount == 1 || colonCount == 2)
+  //   isTimer = true;
+  
+  // if (isTimer)
+  // {
+    // Serial.println("Is a timer");
+    // int textLen = strlen(text1);
+    // int charBoxWidth = isTimer ? 9 : 0;
+    // int spacing = isTimer ? 2 : 1;
+    // int totalWidth = 0;
+
+    // for (int i = 0; i < textLen; i++)
+    // {
+        // if (isTimer)
+            // totalWidth += (text1[i] == ':' ? 4 : charBoxWidth) + spacing;
+        // else
+            // totalWidth += getCharacterWidth15x15(text1[i]) + 1;
+    // }
+
+    // int startX = (NUMPIXELS - totalWidth) / 2;
+    // int currentX = startX;
+    // int startY = 2;
+
+    // clearBuffer(useBigFont);
+
+    // for (int i = 0; i < textLen; i++)
+    // {
+      // int specialCharWidth = (text1[i] == ':') ? 4 : charBoxWidth;
+      // int specialSpacing   = (text1[i] == ':') ? 3 : spacing;
+      // drawCharacter15x15(text1[i], currentX, startY, currentFullColourHex);
+      // currentX += specialCharWidth + specialSpacing;
+      
+    // }
+  // }
   if (useBigFont)
   {
     // Big Font Mode (Single Row)

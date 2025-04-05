@@ -62,7 +62,7 @@ async function sendMessage()
 		setTimeout(function(){
 			send.disabled = false;
 			send.style.cursor = "pointer";
-		}, 4000)
+		}, 3000)
 	}
 }
 
