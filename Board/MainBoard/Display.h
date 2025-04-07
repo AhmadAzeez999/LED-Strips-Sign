@@ -37,10 +37,11 @@ private:
   
   // Helper methods for displayText function
   int calculateTextWidth(const char* text, bool useBigFont);
-  void scrollTextContinuous(const char* text, int totalWidth, bool useBigFont, uint32_t colour);
-  void scrollTextAndStop(const char* text, int totalWidth, bool useBigFont, uint32_t colour);
-  void fadeInText(const char* text1, const char* text2, bool useBigFont, uint32_t colour);
-  void displayStaticText(const char* text1, const char* text2, bool useBigFont, uint32_t colour);
+  void scrollTextContinuous(const char* text1, const char* text2, int totalWidth, bool useBigFont);
+  void drawTextLine(const char* text, int textLen, int* charWidths, int startX, int y, uint32_t color, int totalWidth, bool useBigFont);
+  void scrollTextAndStop(const char* text1, const char* text2, int totalWidth, bool useBigFont);
+  void fadeInText(const char* text1, const char* text2, bool useBigFont);
+  void displayStaticText(const char* text1, const char* text2, bool useBigFont);
   
 public:
   // Singleton accessor
@@ -66,6 +67,6 @@ public:
   void setBottomColour(const uint32_t colourHex);
   void setFullColour(const uint32_t colourHex);
   // For custom drawings
-  void displayCustomPixels(String input, String chunckPos);
+  void displayCustomPixels(const char* input, const char* chunckPos);
 };
 #endif // DISPLAY_H

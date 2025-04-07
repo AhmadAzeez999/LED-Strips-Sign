@@ -31,9 +31,10 @@ void setup()
   Serial.begin(9600);
   timer.setupRTC();
   remote.setupRemote();
-  display.setup(4);
+  display.setup(100);
 
-  display.displayText("LED Strips", "Sign", "static", "no");
+  display.displayText("LED STRIPS", "SIGNBOARD", "static", "no");
+  // display.displayText("2+:00", "", "static", "yes");
 
   // parseInput("$custom$start[(0,0,#2309ec),(0,1,#2309ec),(0,2,#ffffff)]");
   // parseInput("$custom$no[(1,0,#2309ec),(2,0,#2309ec),(3,0,#ffffff)]");
@@ -87,7 +88,7 @@ void parseInput(String input)
   {
     int openBracket = input.indexOf('[');
     String chunckPos = input.substring(secondDollar + 1, openBracket);
-    display.displayCustomPixels(input, chunckPos);
+    display.displayCustomPixels(input.c_str(), chunckPos.c_str());
   }
   else if (command == "settns")
   {
@@ -176,18 +177,17 @@ void updateSettings(String input)
   String fullColour = input.substring(thirdComma + 2, closeBracket);
   
   // Convert hex color strings to uint32_t
-  uint32_t topColor = (uint32_t)strtoul(topColour.c_str() + 1, NULL, 16);
-  uint32_t bottomColor = (uint32_t)strtoul(bottomColour.c_str() + 1, NULL, 16);
-  uint32_t fullColor = (uint32_t)strtoul(fullColour.c_str() + 1, NULL, 16);
+  uint32_t topColr = (uint32_t)strtoul(topColour.c_str() + 1, NULL, 16);
+  uint32_t bottomColr = (uint32_t)strtoul(bottomColour.c_str() + 1, NULL, 16);
+  uint32_t fullColr = (uint32_t)strtoul(fullColour.c_str() + 1, NULL, 16);
   
   // Set brightness
   display.setBrightness(brightness);
   
   // Set color settings
-  display.setTopColour(topColor);
-  display.setBottomColour(bottomColor);
-  display.setFullColour(fullColor);
+  display.setTopColour(topColr);
+  display.setBottomColour(bottomColr);
+  display.setFullColour(fullColr);
 
   display.displayText("Done", "", "static", "yes");
 }
-

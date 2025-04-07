@@ -215,32 +215,33 @@ void Display::drawCharacter15x15(char c, int x, int y, uint32_t color)
 void Display::displayText(const char* text1, const char* text2, const char* command, const char* displayType)
 {
   bool useBigFont = (strcmp(displayType, "yes") == 0);
-  uint32_t colour = currentFullColourHex;
   clearBuffer(useBigFont);
 
-  // Calculate text dimensions for the main text
-  int textLen = strlen(text1);
-  int totalWidth = calculateTextWidth(text1, useBigFont);
+  int text1Len = strlen(text1);
+  int text2Len = strlen(text2);
+
+  // Calculate width based on the longer text
+  int totalWidth = calculateTextWidth((text1Len > text2Len) ? text1 : text2, useBigFont);
   
   if (strcmp(command, "scrolC") == 0)
   {
     // Continuous scrolling implementation
-    scrollTextContinuous(text1, totalWidth, useBigFont, colour);
+    scrollTextContinuous(text1, text2, totalWidth, useBigFont);
   }
   else if (strcmp(command, "scrolS") == 0)
   {
     // Scroll from right then stop at the left
-    scrollTextAndStop(text1, totalWidth, useBigFont, colour);
+    scrollTextAndStop(text1, text2, totalWidth, useBigFont);
   }
   else if (strcmp(command, "fadeIn") == 0)
   {
     // Fade in text effect
-    fadeInText(text1, text2, useBigFont, colour);
+    fadeInText(text1, text2, useBigFont);
   }
   else if (strcmp(command, "static") == 0)
   {
     // Static display implementation
-    displayStaticText(text1, text2, useBigFont, colour);
+    displayStaticText(text1, text2, useBigFont);
   }
 }
 
@@ -262,124 +263,52 @@ int Display::calculateTextWidth(const char* text, bool useBigFont)
 }
 
 // Continuous scrolling implementation
-void Display::scrollTextContinuous(const char* text, int totalWidth, bool useBigFont, uint32_t colour)
+void Display::scrollTextContinuous(const char* text1, const char* text2, int totalWidth, bool useBigFont)
 {
-  int scrollSpeed = 100;  // Milliseconds between shifts
-  int textLen = strlen(text);
-  int shift = 0;
-
-  scrollInterrupt = false;
+  int speed = 50;
+  int text1Len = strlen(text1);
+  int text2Len = strlen(text2);
+  int longerTextLen = (text1Len > text2Len) ? text1Len : text2Len;
   
-  // We'll need to make a copy of the text to ensure it remains valid
-  // even if the original gets overwritten by a new command
-  char* textCopy = new char[textLen + 1];
-  strcpy(textCopy, text);
-  
-  unsigned long previousMillis = 0;
-  unsigned long currentMillis;
-  
-  // Create a separate task or thread for scrolling
-  // This will run until interrupted
-  while (!scrollInterrupt)
+  // Calculate the total width of the text
+  int textTotalWidth = 0;
+  for (int i = 0; i < longerTextLen; i++)
   {
-    currentMillis = millis();
-    
-    // Check if it's time to update the scroll position
-    if (currentMillis - previousMillis >= scrollSpeed)
-    {
-      previousMillis = currentMillis;
-      
-      // Clear the buffer for the new frame
-      clearBuffer(useBigFont);
-      
-      // Calculate the x position with wrapping for infinite scroll
-      int effectiveShift = shift % (totalWidth + NUMPIXELS);
-      int currentX = NUMPIXELS - effectiveShift;
-      
-      // If we're approaching the end of text, start drawing a copy at the beginning
-      for (int i = 0; i < textLen; i++)
-      {
-        int charWidth = useBigFont ? 
-          getCharacterWidth15x15(textCopy[i]) : 
-          getCharacterWidth7x7(textCopy[i]);
-          
-        if (currentX >= -charWidth && currentX < NUMPIXELS)
-        {
-          if (useBigFont)
-          {
-            drawCharacter15x15(textCopy[i], currentX, 1, colour);
-          }
-          else
-          {
-            drawCharacter7x7(textCopy[i], currentX, 0, colour);
-          }
-        }
-        
-        // Also draw the character again after a full text width to create seamless loop
-        if (currentX + totalWidth + NUMPIXELS >= 0 && currentX + totalWidth + NUMPIXELS < NUMPIXELS * 2)
-        {
-          if (useBigFont)
-          {
-            drawCharacter15x15(textCopy[i], currentX + totalWidth + NUMPIXELS, 1, colour);
-          }
-          else
-          {
-            drawCharacter7x7(textCopy[i], currentX + totalWidth + NUMPIXELS, 0, colour);
-          }
-        }
-        
-        currentX += charWidth + 1;
-      }
-      
-      // Update the display
-      updateLEDs();
-      
-      // Increment the shift for the next frame
-      shift++;
-      
-      // Check for data available on Serial port or other interrupt condition
-      if (Serial.available() > 0)
-      {
-        scrollInterrupt = true;
-      }
-    }
-    
-    // Small delay to prevent hogging the CPU
-    // This also gives other parts of the code a chance to run
-    delay(1);
+    int charWidth = useBigFont ?
+      getCharacterWidth15x15((i < text1Len) ? text1[i] : ' ') :
+      getCharacterWidth7x7((i < text1Len) ? text1[i] : ' ');
+    textTotalWidth += charWidth + 1; // Add character width plus spacing
   }
   
-  // Clean up the text copy
-  delete[] textCopy;
-}
-
-// Scroll and stop implementation
-void Display::scrollTextAndStop(const char* text, int totalWidth, bool useBigFont, uint32_t colour) {
-  int speed = 50;
-  int textLen = strlen(text);
-  int stopPosition = 0; // Stop position (left edge)
+  // Calculate the final position where the entire text is off screen
+  // (negative value equal to the text's total width)
+  int finalPosition = -textTotalWidth;
   
-  // Scroll from right edge to stop position
-  for (int shift = NUMPIXELS; shift >= stopPosition; shift--)
+  // Scroll from right edge until the entire text is off screen
+  for (int shift = NUMPIXELS; shift >= finalPosition; shift--)
   {
     clearBuffer(useBigFont);
     int currentX = shift;
     
-    for (int i = 0; i < textLen; i++)
+    for (int i = 0; i < longerTextLen; i++)
     {
-      int charWidth = useBigFont ? 
-        getCharacterWidth15x15(text[i]) : 
-        getCharacterWidth7x7(text[i]);
+      int charWidth = useBigFont ?
+        getCharacterWidth15x15((i < text1Len) ? text1[i] : ' ') :
+        getCharacterWidth7x7((text1Len > text2Len) ? text1[i] : text2[i]);
         
       if (currentX >= -charWidth && currentX < NUMPIXELS)
       {
         if (useBigFont)
         {
-          drawCharacter15x15(text[i], currentX, 1, colour);
+          if (i < text1Len)
+            drawCharacter15x15(text1[i], currentX, 1, currentFullColourHex);
         }
         else
         {
-          drawCharacter7x7(text[i], currentX, 0, colour);
+          if (i < text1Len)
+            drawCharacter7x7(text1[i], currentX, 0, currentTopColourHex);
+          if (i < text2Len)
+            drawCharacter7x7(text2[i], currentX, 8, currentBottomColourHex);
         }
       }
       currentX += charWidth + 1;
@@ -390,7 +319,49 @@ void Display::scrollTextAndStop(const char* text, int totalWidth, bool useBigFon
   }
 }
 
-void Display::fadeInText(const char* text1, const char* text2, bool useBigFont, uint32_t colour)
+// Scroll and stop implementation
+void Display::scrollTextAndStop(const char* text1, const char* text2, int totalWidth, bool useBigFont) {
+  int speed = 50;
+  int text1Len = strlen(text1);
+  int text2Len = strlen(text2);
+  int longerTextLen = (text1Len > text2Len) ? text1Len : text2Len;
+  int stopPosition = 0; // Stop position (left edge)
+  
+  // Scroll from right edge to stop position
+  for (int shift = NUMPIXELS; shift >= stopPosition; shift--)
+  {
+    clearBuffer(useBigFont);
+    int currentX = shift;
+    
+    for (int i = 0; i < longerTextLen; i++)
+    {
+      int charWidth = useBigFont ? 
+        getCharacterWidth15x15(text1[i]) : 
+        getCharacterWidth7x7((text1Len > text2Len) ? text1[i] : text2[i]);
+        
+      if (currentX >= -charWidth && currentX < NUMPIXELS)
+      {
+        if (useBigFont)
+        {
+          drawCharacter15x15(text1[i], currentX, 1, currentFullColourHex);
+        }
+        else
+        {
+          if (i < text1Len)
+            drawCharacter7x7(text1[i], currentX, 0, currentTopColourHex);
+          if (i < text2Len)
+            drawCharacter7x7(text2[i], currentX, 8, currentBottomColourHex);
+        }
+      }
+      currentX += charWidth + 1;
+    }
+    
+    updateLEDs();
+    delay(speed);
+  }
+}
+
+void Display::fadeInText(const char* text1, const char* text2, bool useBigFont)
 {
   int steps = 20;  // Number of fade steps
   int delay_ms = 50;  // Delay between steps
@@ -406,7 +377,7 @@ void Display::fadeInText(const char* text1, const char* text2, bool useBigFont, 
   
   // Draw the text at full color but with brightness at 0
   setBrightness(0);
-  displayStaticText(text1, text2, useBigFont, colour);
+  displayStaticText(text1, text2, useBigFont);
   
   // Gradually increase brightness
   for (int step = 1; step <= steps; step++)
@@ -422,8 +393,58 @@ void Display::fadeInText(const char* text1, const char* text2, bool useBigFont, 
 }
 
 // Static text display implementation
-void Display::displayStaticText(const char* text1, const char* text2, bool useBigFont, uint32_t colour)
+void Display::displayStaticText(const char* text1, const char* text2, bool useBigFont)
 {
+  bool isTimer = false;
+  int colonCount = 0;
+  for (int i = 0; i < strlen(text1); i++)
+  {
+    if (text1[i] == ':')
+    {
+      isTimer = true;
+      break;
+    } 
+    // if (!isdigit(text1[i]) && text1[i] != ':')
+    // {
+    //     isTimer = false;
+    //     break;
+    // }
+  }
+
+  // if (colonCount == 1 || colonCount == 2)
+  //   isTimer = true;
+  
+  // if (isTimer)
+  // {
+    // Serial.println("Is a timer");
+    // int textLen = strlen(text1);
+    // int charBoxWidth = isTimer ? 9 : 0;
+    // int spacing = isTimer ? 2 : 1;
+    // int totalWidth = 0;
+
+    // for (int i = 0; i < textLen; i++)
+    // {
+        // if (isTimer)
+            // totalWidth += (text1[i] == ':' ? 4 : charBoxWidth) + spacing;
+        // else
+            // totalWidth += getCharacterWidth15x15(text1[i]) + 1;
+    // }
+
+    // int startX = (NUMPIXELS - totalWidth) / 2;
+    // int currentX = startX;
+    // int startY = 2;
+
+    // clearBuffer(useBigFont);
+
+    // for (int i = 0; i < textLen; i++)
+    // {
+      // int specialCharWidth = (text1[i] == ':') ? 4 : charBoxWidth;
+      // int specialSpacing   = (text1[i] == ':') ? 3 : spacing;
+      // drawCharacter15x15(text1[i], currentX, startY, currentFullColourHex);
+      // currentX += specialCharWidth + specialSpacing;
+      
+    // }
+  // }
   if (useBigFont)
   {
     // Big Font Mode (Single Row)
@@ -437,7 +458,7 @@ void Display::displayStaticText(const char* text1, const char* text2, bool useBi
     for (int i = 0; i < textLen; i++)
     {
       int charWidth = getCharacterWidth15x15(text1[i]);
-      drawCharacter15x15(text1[i], currentX, startY, colour);
+      drawCharacter15x15(text1[i], currentX, startY, currentFullColourHex);
       currentX += charWidth + 1;
     }
   }
@@ -489,64 +510,90 @@ void Display::setFullColour(const uint32_t colourHex)
   currentFullColourHex = colourHex;
 }
 
-void Display::displayCustomPixels(String input, String chunckPos)
+void Display::displayCustomPixels(const char* input, const char* chunkPos)
 {
-  // Find the opening and closing brackets
-  int openBracket = input.indexOf('[');
-  int closeBracket = input.indexOf(']');
- 
-  // Extract the coordinates string
-  String coordString = input.substring(openBracket + 1, closeBracket);
-
-  Serial.print(chunckPos);
- 
-  // Clear the display first
-  if (chunckPos == "start")
+  // Clear the display if this is the first chunk
+  if (strcmp(chunkPos, "start") == 0)
   {
     clearBuffer(true);
   }
- 
-  // Parse the coordinates
-  int startIndex = 0;
-  int endIndex = 0;
- 
-  while (startIndex < coordString.length())
+  
+  // Print chunk position for debugging
+  Serial.println(chunkPos);
+  
+  // Find the opening bracket
+  const char* start = strchr(input, '[');
+  if (!start) return; // Exit if no opening bracket found
+  start++; // Move past the opening bracket
+  
+  // Process each coordinate pair
+  char coordBuffer[30]; // Buffer for holding one coordinate set
+  int bufferIndex = 0;
+  bool inCoordPair = false;
+  
+  for (const char* p = start; *p && *p != ']'; p++)
   {
-    // Find the next coordinate pair
-    endIndex = coordString.indexOf(')', startIndex);
-   
-    if (endIndex == -1)
-      break;
-   
-    // Extract the coordinate pair
-    String coordPair = coordString.substring(startIndex, endIndex + 1);
-   
-    // Remove parentheses
-    coordPair.replace("(", "");
-    coordPair.replace(")", "");
-   
-    // Split the coordinate pair into x, y, and color
-    int firstCommaIndex = coordPair.indexOf(',');
-    int secondCommaIndex = coordPair.indexOf(',', firstCommaIndex + 1);
-   
-    if (firstCommaIndex != -1 && secondCommaIndex != -1)
+    if (*p == '(')
     {
-      int x = coordPair.substring(0, firstCommaIndex).toInt();
-      int y = coordPair.substring(firstCommaIndex + 1, secondCommaIndex).toInt();
-      
-      // Parse color (assuming hex color format like FF0000 for red)
-      String colourStr = coordPair.substring(secondCommaIndex + 1);
-      colourStr.replace("#", "0x");
-      unsigned long colour = strtoul(colourStr.c_str(), NULL, 16);
-      
-      // Set the pixel with parsed color
-      setPixel(y, x, colour);
+      inCoordPair = true;
+      bufferIndex = 0;
     }
-   
-    // Move to next coordinate
-    startIndex = endIndex + 2;
+    else if (*p == ')')
+    {
+      inCoordPair = false;
+      coordBuffer[bufferIndex] = '\0'; // Null terminate
+      
+      // Parse the coordinate pair
+      char* xStr = coordBuffer;
+      char* yStr = NULL;
+      char* colorStr = NULL;
+      
+      // Find first comma
+      char* firstComma = strchr(coordBuffer, ',');
+      if (firstComma)
+      {
+        *firstComma = '\0'; // Split string
+        yStr = firstComma + 1;
+        
+        // Find second comma
+        char* secondComma = strchr(yStr, ',');
+        if (secondComma)
+        {
+          *secondComma = '\0'; // Split string
+          colorStr = secondComma + 1;
+        }
+      }
+      
+      // If we have all three components
+      if (xStr && yStr && colorStr)
+      {
+        int x = atoi(xStr);
+        int y = atoi(yStr);
+        
+        // Handle hex color with or without # prefix
+        unsigned long color = 0;
+        if (strncmp(colorStr, "#", 1) == 0)
+        {
+          color = strtoul(colorStr + 1, NULL, 16);
+        }
+        else
+        {
+          color = strtoul(colorStr, NULL, 16);
+        }
+        
+        // Set the pixel with parsed color (bounds checking recommended)
+        if (x >= 0 && y >= 0)
+        {
+          setPixel(y, x, color);
+        }
+      }
+    }
+    else if (inCoordPair && bufferIndex < sizeof(coordBuffer) - 1)
+    {
+      coordBuffer[bufferIndex++] = *p;
+    }
   }
-
-  // Update LED
+  
+  // Update LEDs
   updateLEDs();
 }
