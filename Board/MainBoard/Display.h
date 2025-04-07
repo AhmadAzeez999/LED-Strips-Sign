@@ -38,6 +38,7 @@ private:
   // Helper methods for displayText function
   int calculateTextWidth(const char* text, bool useBigFont);
   void scrollTextContinuous(const char* text1, const char* text2, int totalWidth, bool useBigFont);
+  void drawTextLine(const char* text, int textLen, int* charWidths, int startX, int y, uint32_t color, int totalWidth, bool useBigFont);
   void scrollTextAndStop(const char* text1, const char* text2, int totalWidth, bool useBigFont);
   void fadeInText(const char* text1, const char* text2, bool useBigFont);
   void displayStaticText(const char* text1, const char* text2, bool useBigFont);
