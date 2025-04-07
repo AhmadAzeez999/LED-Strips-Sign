@@ -184,67 +184,46 @@ document.addEventListener('DOMContentLoaded', function()
         drawnPixels.clear();
     });
     
-    // Send button functionality (unchanged from original)
+
+    
     sendBtn.addEventListener('click', async (e) => {
         e.preventDefault();
         sendBtn.disabled = true;
         sendBtn.style.cursor = "not-allowed";
+        setTimeout(() => {
+            sendBtn.disabled = false;            // Disable the 
+            sendBtn.style.cursor = "pointer";
+        }, 5000);
         let f_list = Array.from(drawnPixels);
-        if(f_list.length > 15){
+        if (f_list.length > 15) {
             for (let i = 0; i < f_list.length; i += 15) {
                 let chunk = f_list.slice(i, i + 15).join(',');
-                if(i === 0){
-                    await fetch(`${API_URL}/dashboard/post`, {
+                await fetch(`${API_URL}/dashboard/post`, {
                         method: 'POST',
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                             "command": "custom",
-                            "param": "start",
+                            "param": i === 0 ? "start" : "no",
                             "data": chunk
                         })
-                    });
-                }
-                else{
-                    await fetch(`${API_URL}/dashboard/post`, {
-                        method: 'POST',
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            "command": "custom",
-                            "param": "no",
-                            "data": chunk
-                        })
-                    });
-                }   
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                });
+                await new Promise(resolve => setTimeout(resolve, 2000));
             }
-            setTimeout(function(){
+            } else {
+            setTimeout(() => {
                 sendBtn.disabled = false;
                 sendBtn.style.cursor = "pointer";
-            }, 1000);
-
-        }
-        else
-        {
-            const resp =  await fetch(`${API_URL}/dashboard/post`,
-                {
-                    method: 'POST',
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify(
-                    {
-                        "command": "custom",
-                        "param": "start",
-                        "data": f_list
-                    })
+            }, 3000);
+            await fetch(`${API_URL}/dashboard/post`, {
+                method: 'POST',
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    "command": "custom",
+                    "param": "start",
+                    "data": f_list
+                })
             });
-            if (resp.status != 200)
-            {
-                alert('Failed to send message');
-            }
-            setTimeout(function(){
-                sendBtn.disabled = false;
-                sendBtn.style.cursor = "pointer";
-            }, 5000);
-
+            await new Promise(resolve => setTimeout(resolve, 2000));
         }
     });
     

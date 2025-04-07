@@ -1,19 +1,6 @@
 const API_URL = 'http://127.0.0.1:8080'; // Change 127.0.0.1 to localhost if you receive post errors
 
-function run_server() {
-	try {
-		var shell = new ActiveXObject("WScript.Shell");
-		var userProfile = shell.ExpandEnvironmentStrings("%USERPROFILE%");
-		var downloadsPath = userProfile + "\\Downloads\\run.ps1";
 
-		// Debugging: Show path
-		alert("Running: " + downloadsPath);
-
-		shell.Run("powershell.exe -ExecutionPolicy Bypass -File \"" + downloadsPath + "\"", 0, true);
-	} catch (e) {
-		alert("Error: " + e.message);
-	}
-}
 
 
 async function sendMessage()
@@ -43,6 +30,10 @@ async function sendMessage()
 	{
 		send.disabled = true;
 		send.style.cursor = "not-allowed";
+		setTimeout(function(){
+			send.disabled = false;
+			send.style.cursor = "pointer";
+		}, 3000);
 		const response = await fetch(`${API_URL}/dashboard/post`,
 		{
 			method: 'POST',
@@ -59,10 +50,7 @@ async function sendMessage()
 		{
 			alert("Failed to connect");
 		}
-		setTimeout(function(){
-			send.disabled = false;
-			send.style.cursor = "pointer";
-		}, 4000)
+
 	}
 }
 
@@ -108,6 +96,10 @@ async function start_timer()
 		const message = minutes + ":" + seconds;
 		s_timer.disabled = true;
 		s_timer.style.cursor = "not-allowed";
+		setTimeout(function(){
+			s_timer.disabled = false;
+			s_timer.style.cursor = "pointer";
+		}, 3000);
 		const response = await fetch(`${API_URL}/dashboard/post`,
 		{
 			method: 'POST',
@@ -124,10 +116,7 @@ async function start_timer()
 		{
 			alert('Failed to send message');
 		}
-		setTimeout(function(){
-			s_timer.disabled = false;
-			s_timer.style.cursor = "pointer";
-		}, 4000)
+
 	}
 }
 
@@ -147,6 +136,10 @@ async function pause_and_resume_timer()
 	}
 	p_timer.disabled = true;
 	p_timer.style.cursor = "not-allowed";
+	setTimeout(function(){
+		p_timer.disabled = false;
+		p_timer.style.cursor = "pointer";
+	}, 3000);
 	const response = await fetch(`${API_URL}/dashboard/post`,
 	{
 		method: 'POST',
@@ -161,10 +154,7 @@ async function pause_and_resume_timer()
 	{
 		alert('Failed to send message');
 	}
-	setTimeout(function(){
-		p_timer.disabled = false;
-		p_timer.style.cursor = "pointer";
-	}, 4000)
+
 }
 
 async function display_time()
@@ -172,13 +162,17 @@ async function display_time()
 	let d_time = document.getElementById("timeOfDayBtn");
     d_time.disabled = true;
 	d_time.style.cursor = "not-allowed";
+	setTimeout(function(){
+		d_time.disabled = false;
+		d_time.style.cursor = "pointer";
+	}, 3000);
 	const response = await fetch(`${API_URL}/dashboard/post`,
 	{
 		method: 'POST',
 		headers: {"Content-Type": "application/json"},
 		body: JSON.stringify(
 		{
-			"command": "dot"
+			"command": "tod"
 		})
 	});
 
@@ -186,11 +180,32 @@ async function display_time()
 	{
 		alert('Failed to send message');
 	}
-	setTimeout(function(){
-		d_time.disabled = false;
-		d_time.style.cursor = "pointer";
-	}, 4000)
+
 	
+}
+async function reset_timer()
+{
+	let r_time = document.querySelector('.btn-reset');
+    r_time.disabled = true;
+	r_time.style.cursor = "not-allowed";
+	setTimeout(function(){
+		r_time.disabled = false;
+		r_time.style.cursor = "pointer";
+	}, 3000);
+	const response = await fetch(`${API_URL}/dashboard/post`,
+	{
+		method: 'POST',
+		headers: {"Content-Type": "application/json"},
+		body: JSON.stringify(
+		{
+			"command": "rTimer"
+		})
+	});
+
+	if (response.status != 200)
+	{
+		alert('Failed to send message');
+	}
 }
 
 const all_preset_btns = document.querySelectorAll('#preset_btns');
@@ -215,6 +230,11 @@ async function send_settings()
     const full_text_color = document.getElementById('fullScreenTextcolour').value;
     set_btn.disabled = true;
 	set_btn.style.cursor = "not-allowed";
+	setTimeout(function()
+	{
+		set_btn.disabled = false;
+		set_btn.style.cursor = "pointer";
+	}, 3000);
 	const response = await fetch(`${API_URL}/dashboard/post`,
 	{
 		method: 'POST',
@@ -233,11 +253,7 @@ async function send_settings()
 	{
 		alert('Failed to send message');
 	}
-	setTimeout(function()
-	{
-		set_btn.disabled = false;
-		set_btn.style.cursor = "pointer";
-	}, 4000)
+
 	
 }
 
