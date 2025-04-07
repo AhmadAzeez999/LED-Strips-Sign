@@ -58,7 +58,7 @@ $f_port = "COM$signPort" # add the COM to initialize the entered port as serial 
 $out_port_a = new-Object System.IO.Ports.SerialPort $f_port,$baudRate,None,8,one
 
 $out_port_a.WriteBufferSize = 65536   # Set the buffer size to high value that is 4096 bytes
-$out_port_a.WriteTimeout = 1000 # set max timeout of the serial write operation in order to prevent stalling of main script
+$out_port_a.WriteTimeout = 1200 # set max timeout of the serial write operation in order to prevent stalling of main script
 $out_port_a.open()
 
 # Log ready message to terminal
@@ -122,7 +122,7 @@ while ($http.IsListening)
             # $sw = [System.Diagnostics.Stopwatch]::StartNew()
             $out_port_a.WriteLine($data)
             Write-Host $data
-            Start-Sleep -Milliseconds 100
+            Start-Sleep -Milliseconds 200
             #$sw.Stop()
 
             # Write-Host "Execution Time: $($sw.ElapsedMilliseconds) ms"

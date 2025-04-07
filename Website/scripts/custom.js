@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', function()
         sendBtn.disabled = true;
         sendBtn.style.cursor = "not-allowed";
         setTimeout(() => {
-            sendBtn.disabled = false;            // Disable the 
+            sendBtn.disabled = false;           
             sendBtn.style.cursor = "pointer";
         }, 5000);
         let f_list = Array.from(drawnPixels);
