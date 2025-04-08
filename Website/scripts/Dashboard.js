@@ -232,6 +232,9 @@ async function send_settings()
     const full_text_color = document.getElementById('fullScreenTextcolour').value;
     set_btn.disabled = true;
 	set_btn.style.cursor = "not-allowed";
+
+	var actual_brightness_value = (brightness_value / 100) * 255; // Getting the percentage of 255. Because it is 0 - 255 on the arduino
+
 	setTimeout(function()
 	{
 		set_btn.disabled = false;
@@ -244,7 +247,7 @@ async function send_settings()
 		body: JSON.stringify(
 		{
 			"command": "settns",
-			"brightness": brightness_value,
+			"brightness": actual_brightness_value,
 			"tcolor": top_color,
 			"bcolor": bottom_color,
 			"fcolor": full_text_color,
