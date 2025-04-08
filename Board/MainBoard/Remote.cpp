@@ -175,7 +175,7 @@ void RemoteControl::useRemote()
           changeFColourScheme();
         }
 
-        if (remoteValue == "a758") timers.displayTimeOfDay(true);
+        if (remoteValue == "b649") timers.displayTimeOfDay(true);
 
         if (remoteValue == "f807") adjustBrightness(51);
         else if (remoteValue == "f40b") adjustBrightness(-51);
