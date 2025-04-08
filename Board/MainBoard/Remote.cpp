@@ -6,7 +6,7 @@
 Timer timers;
 #define IR_PIN 10
 
-RemoteControl::RemoteControl() : bright(4), remoteStatus(false), enteredValue(0), minu(0), fIndex(0), tbIndex(0), timerInputMode(false) {}
+RemoteControl::RemoteControl() : bright(255), remoteStatus(false), enteredValue(0), minu(0), fIndex(0), tbIndex(0), timerInputMode(false) {}
 
 void RemoteControl::setupRemote()
 {
@@ -17,20 +17,21 @@ void RemoteControl::setupRemote()
 void RemoteControl::displayDefaultMessage()
 {
     Display::getInstance().clearBuffer(true);
-    Display::getInstance().displayText("Athletics ", "","static","no");
+    Display::getInstance().displayText("LED STRIPS", "SIGNBOARD", "static", "no");
     Display::getInstance().updateLEDs();
 }
 
 void RemoteControl::adjustBrightness(int change)
 {
-  if ((change > 0 && bright < 10) || (change < 0 && bright > 1))
+  if ((change > 0 && bright < 255) || (change < 0 && bright > 51))
   {
     bright += change;
+    Serial.println(bright);
     Display::getInstance().clearBuffer(true);
-    if(bright == 10){
+    if(bright == 255){
       Display::getInstance().displayText("BrMax", "", "static", "yes");
     }
-    else if(bright == 1)
+    else if(bright == 51)
     {
       Display::getInstance().displayText("BrMin", "", "static", "yes");
     }
@@ -114,7 +115,6 @@ void RemoteControl::setDefaultMessage(String remoteCode)
 void RemoteControl::useRemote()
 {
   timers.updateTimer();
-  timers.timeOfDays();
 
   if (IrReceiver.decode())
   {
@@ -175,10 +175,10 @@ void RemoteControl::useRemote()
           changeFColourScheme();
         }
 
-        if (remoteValue == "a758") timers.displayTimeOfDay(true);
+        if (remoteValue == "b649") timers.displayTimeOfDay(true);
 
-        if (remoteValue == "f807") adjustBrightness(1);
-        else if (remoteValue == "f40b") adjustBrightness(-1);
+        if (remoteValue == "f807") adjustBrightness(51);
+        else if (remoteValue == "f40b") adjustBrightness(-51);
 
         if(remoteValue == "946b")
         {
@@ -188,7 +188,6 @@ void RemoteControl::useRemote()
           manualTimerInput(); // while loop
           delay(500);
         }
-          
       }
         IrReceiver.resume();
     }  

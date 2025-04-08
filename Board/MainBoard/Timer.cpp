@@ -13,13 +13,6 @@ void Timer::setupRTC()
     Serial.println("Couldn't find RTC");
     while (1); // freeze the program
   }
-
-  if (rtc.lostPower())
-  {
-    Serial.println("RTC lost power, setting time!");
-     // syncs with PC compile time
-     rtc.adjust(DateTime(F(__DATE__), F(__TIME__))); 
-  }
   rtc.adjust(DateTime(F(__DATE__), F(__TIME__))); 
 }
 
@@ -71,41 +64,48 @@ void Timer::stopTimer()
   Display::getInstance().displayText("STOP", "", "static", "yes");
 }
 
-void Timer::timeOfDays()
-{
-  if (!timeOfDay) return;
-  
-  if(millis() - lastUpdateMillis >= 1000)
-  {
-    DateTime now = rtc.now().unixtime();
-    
-    int mins = now.hour();
-    int secs = now.minute();
-    Serial.println(now.timestamp());
-    char text[8];
-    sprintf(text, "%d+:%02d", mins, secs);
-    Display::getInstance().displayText(text, "", "static", "yes");
-    lastUpdateMillis = millis();
-  }
-}
-
 void Timer::displayTimeOfDay(bool tod)
 {
-  timeOfDay = tod;
+  if(tod == true)
+  {
+    currentMode = MODE_CLOCK;
+  }
+  else
+  {
+    currentMode = MODE_TIMER;
+  }
 }
 
 void Timer::updateTimer()
 {
-  if (!timerActive || timerPaused) return;
   
   if (millis() - lastUpdateMillis >= 1000)
   {
-    DateTime now = rtc.now();
-    TimeSpan remaining = targetTime - now;
-    Serial.println(remaining.minutes());
-    Serial.println(remaining.totalseconds());
-    Serial.println(targetTime.secondstime());
-    Serial.println(now.timestamp());
+    switch (currentMode)
+  {
+    case MODE_TIMER:
+      if (!timerActive || timerPaused)
+      {
+        // If timer is paused or done, optionally fall back to clock mode
+        // currentMode = MODE_CLOCK; // Uncomment if desired
+        break;
+      }
+      updateCountdown();
+      break;
+
+    case MODE_CLOCK:
+      updateTimeOfDay();
+      break;
+  }
+
+    lastUpdateMillis = millis();
+  }
+}
+
+void Timer::updateCountdown()
+{
+  DateTime now = rtc.now();
+  TimeSpan remaining = targetTime - now;
 
     if (remaining.totalseconds() <= 0)
     {
@@ -120,10 +120,19 @@ void Timer::updateTimer()
       sprintf(text, "%d+:%02d", mins, secs);
       Display::getInstance().displayText(text, "", "static", "yes");
     }
-
-    lastUpdateMillis = millis();
-  }
 }
+
+void Timer::updateTimeOfDay()
+{
+    DateTime now = rtc.now();
+    int mins = now.hour();
+    int secs = now.minute();
+    char text[8];
+    sprintf(text, "%d+:%02d", mins, secs);
+    Display::getInstance().displayText(text, "", "static", "yes");
+}
+
+
 
 bool Timer::getTimerRunning()
 {
