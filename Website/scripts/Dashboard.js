@@ -70,10 +70,8 @@ async function killServer()
 	}
 }
 
-
 async function start_timer()
 {
-
 	const minutes = document.getElementById('minutes').value;
 	const seconds = document.getElementById('seconds').value;
 	let s_timer = document.querySelector('.btn-start');
@@ -96,7 +94,8 @@ async function start_timer()
 		const message = minutes + ":" + seconds;
 		s_timer.disabled = true;
 		s_timer.style.cursor = "not-allowed";
-		setTimeout(function(){
+		setTimeout(function()
+		{
 			s_timer.disabled = false;
 			s_timer.style.cursor = "pointer";
 		}, 3000);
@@ -124,19 +123,22 @@ async function pause_and_resume_timer()
 {
 	let p_timer = document.querySelector('.btn-pause-resume');
 	let toggle = "";
-	if(p_timer.textContent === "Pause"){
+	if(p_timer.textContent === "Pause")
+	{
 		toggle = "pTimer";
 		p_timer.textContent = "Resume";
 		p_timer.style.background = "green";
 	}
-	else{
+	else
+	{
 		toggle = "resume";
 		p_timer.textContent = "Pause";
-		p_timer.style.background = "rgb(120, 120, 27)";
+		p_timer.style.background = "rgb(249, 142, 41)";
 	}
 	p_timer.disabled = true;
 	p_timer.style.cursor = "not-allowed";
-	setTimeout(function(){
+	setTimeout(function()
+	{
 		p_timer.disabled = false;
 		p_timer.style.cursor = "pointer";
 	}, 3000);

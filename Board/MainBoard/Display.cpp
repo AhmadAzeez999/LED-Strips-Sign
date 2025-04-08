@@ -265,58 +265,104 @@ int Display::calculateTextWidth(const char* text, bool useBigFont)
 // Continuous scrolling implementation
 void Display::scrollTextContinuous(const char* text1, const char* text2, int totalWidth, bool useBigFont)
 {
-  int speed = 50;
+  int scrollSpeed = 100;  // Milliseconds between shifts
   int text1Len = strlen(text1);
   int text2Len = strlen(text2);
   int longerTextLen = (text1Len > text2Len) ? text1Len : text2Len;
+  int shift = 0;
+
+  scrollInterrupt = false;
   
-  // Calculate the total width of the text
-  int textTotalWidth = 0;
-  for (int i = 0; i < longerTextLen; i++)
+  // We'll need to make a copy of the text to ensure it remains valid
+  // even if the original gets overwritten by a new command
+  char* text1Copy = new char[text1Len + 1];
+  char* text2Copy = new char[text2Len + 1];
+  strcpy(text1Copy, text1);
+  strcpy(text2Copy, text2);
+  
+  unsigned long previousMillis = 0;
+  unsigned long currentMillis;
+  
+  // Create a separate task or thread for scrolling
+  // This will run until interrupted
+  while (!scrollInterrupt)
   {
-    int charWidth = useBigFont ?
-      getCharacterWidth15x15((i < text1Len) ? text1[i] : ' ') :
-      getCharacterWidth7x7((i < text1Len) ? text1[i] : ' ');
-    textTotalWidth += charWidth + 1; // Add character width plus spacing
-  }
-  
-  // Calculate the final position where the entire text is off screen
-  // (negative value equal to the text's total width)
-  int finalPosition = -textTotalWidth;
-  
-  // Scroll from right edge until the entire text is off screen
-  for (int shift = NUMPIXELS; shift >= finalPosition; shift--)
-  {
-    clearBuffer(useBigFont);
-    int currentX = shift;
+    currentMillis = millis();
     
-    for (int i = 0; i < longerTextLen; i++)
+    // Check if it's time to update the scroll position
+    if (currentMillis - previousMillis >= scrollSpeed)
     {
-      int charWidth = useBigFont ?
-        getCharacterWidth15x15((i < text1Len) ? text1[i] : ' ') :
-        getCharacterWidth7x7((text1Len > text2Len) ? text1[i] : text2[i]);
-        
-      if (currentX >= -charWidth && currentX < NUMPIXELS)
+      previousMillis = currentMillis;
+      
+      // Clear the buffer for the new frame
+      clearBuffer(useBigFont);
+      
+      // Calculate the x position with wrapping for infinite scroll
+      int effectiveShift = shift % (totalWidth + NUMPIXELS);
+      int currentX = NUMPIXELS - effectiveShift;
+      
+      // If we're approaching the end of text, start drawing a copy at the beginning
+      for (int i = 0; i < longerTextLen; i++)
       {
-        if (useBigFont)
+        int charWidth = useBigFont ? 
+          getCharacterWidth15x15(text1Copy[i]) : 
+          getCharacterWidth7x7((text1Len > text2Len) ? text1Copy[i] : text2Copy[i]);
+          
+        if (currentX >= -charWidth && currentX < NUMPIXELS)
         {
-          if (i < text1Len)
-            drawCharacter15x15(text1[i], currentX, 1, currentFullColourHex);
+          if (useBigFont)
+          {
+            drawCharacter15x15(text1Copy[i], currentX, 1, currentFullColourHex);
+          }
+          else
+          {
+            if (i < text1Len)
+              drawCharacter7x7(text1Copy[i], currentX, 0, currentTopColourHex);
+            if (i < text2Len)
+              drawCharacter7x7(text2Copy[i], currentX, 8, currentBottomColourHex);
+          }
         }
-        else
+        
+        // Also draw the character again after a full text width to create seamless loop
+        if (currentX + totalWidth + NUMPIXELS >= 0 && currentX + totalWidth + NUMPIXELS < NUMPIXELS * 2)
         {
-          if (i < text1Len)
-            drawCharacter7x7(text1[i], currentX, 0, currentTopColourHex);
-          if (i < text2Len)
-            drawCharacter7x7(text2[i], currentX, 8, currentBottomColourHex);
+          if (useBigFont)
+          {
+            drawCharacter15x15(text1Copy[i], currentX + totalWidth + NUMPIXELS, 1, currentFullColourHex);
+          }
+          else
+          {
+            if (i < text1Len)
+              drawCharacter7x7(text1Copy[i], currentX + totalWidth + NUMPIXELS, 0, currentTopColourHex);
+            if (i < text2Len)
+              drawCharacter7x7(text2Copy[i], currentX + totalWidth + NUMPIXELS, 8, currentBottomColourHex);
+          }
         }
+        
+        currentX += charWidth + 1;
       }
-      currentX += charWidth + 1;
+      
+      // Update the display
+      updateLEDs();
+      
+      // Increment the shift for the next frame
+      shift++;
+      
+      // Check for data available on Serial port or other interrupt condition
+      if (Serial.available() > 0)
+      {
+        scrollInterrupt = true;
+      }
     }
     
-    updateLEDs();
-    delay(speed);
+    // Small delay to prevent hogging the CPU
+    // This also gives other parts of the code a chance to run
+    delay(1);
   }
+  
+  // Clean up the text copy
+  delete[] text1Copy;
+  delete[] text2Copy;
 }
 
 // Scroll and stop implementation

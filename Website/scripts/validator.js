@@ -87,6 +87,7 @@ document.addEventListener("DOMContentLoaded", () =>
                 if (prevText.startsWith(input.value))
                 {
                     input.value = prevText;
+                    prevText = "";
                 }
             }
         }

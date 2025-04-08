@@ -4,22 +4,28 @@ $http = [System.Net.HttpListener]::new();
 $server_port = 8080
 $signPort = 0
 $baudRate = 0
-if(Get-NetTCPConnection -LocalPort $server_port -ErrorAction SilentlyContinue){
-    do{
+if(Get-NetTCPConnection -LocalPort $server_port -ErrorAction SilentlyContinue)
+{
+    do
+    {
     $server_port = Read-Host "Enter Server Port"
-    if ([string]::IsNullOrWhiteSpace($server_port) -or $server_port -match '\D') {
+    if ([string]::IsNullOrWhiteSpace($server_port) -or $server_port -match '\D')
+    {
         Write-Host "Invalid input"
     }
-    elseif ([int]::Parse($server_port) -ge 1 -and [int]::Parse($server_port) -le 65535){
+    elseif ([int]::Parse($server_port) -ge 1 -and [int]::Parse($server_port) -le 65535)
+    {
         
         if(Get-NetTCPConnection -LocalPort $server_port -ErrorAction SilentlyContinue){
             Write-Host "Port is already in use, enter a different one"
         }
-        else{
+        else
+        {
             break
         }
     }
-    else{
+    else
+    {
         Write-Host "Port number out of range"
     }
 }
@@ -28,22 +34,28 @@ while($true)
 
 
 
-do{
+do
+{
 $signPort = Read-Host "Enter Comm PORT"
-if ([string]::IsNullOrWhiteSpace($signPort) -or $signPort -match '\D') {
+if ([string]::IsNullOrWhiteSpace($signPort) -or $signPort -match '\D')
+{
     Write-Host "Enter a valid COM port"
 }
-else{
+else
+{
     break
 }
 }while($true)
 
-do{
+do
+{
     $baudRate = Read-Host "Enter Baud Rate"
-    if ([string]::IsNullOrWhiteSpace($baudRate) -or $baudRate -match '\D') {
+    if ([string]::IsNullOrWhiteSpace($baudRate) -or $baudRate -match '\D')
+    {
         Write-Host "Enter a valid Baud rate"
     }
-else{
+else
+{
     break
 }
 
@@ -94,31 +106,37 @@ while ($http.IsListening)
         $FormContent = [System.IO.StreamReader]::new($context.Request.InputStream).ReadToEnd()
         $dataToSend = $FormContent | ConvertFrom-Json
         $data = ''
-        if($dataToSend.command -eq "pTimer"){
+        if($dataToSend.command -eq "pTimer")
+        {
             $data = "$" + $dataToSend.command + "$"
         }
-        elseif($dataToSend.command -eq "rTimer"){
+        elseif($dataToSend.command -eq "rTimer")
+        {
             $data =  "$" + $dataToSend.command  + "$"
         }
-        elseif($dataToSend.command -eq "resume"){
+        elseif($dataToSend.command -eq "resume")
+        {
             $data = "$" + $dataToSend.command + "$"
         }
-        elseif($dataToSend.command -eq "tod"){
+        elseif($dataToSend.command -eq "tod")
+        {
             $data =  "$" + $dataToSend.command + "$"
         }
-        elseif($dataToSend.command -eq "settns"){
+        elseif($dataToSend.command -eq "settns")
+        {
             $data =  "$" + $dataToSend.command + "$" +  "[" + $dataToSend.brightness + ", " +  $dataToSend.tcolor + ", " +  $dataToSend.bcolor + ", " + $dataToSend.fcolor + "]"
         }
-        elseif($dataToSend.command -eq "custom"){
+        elseif($dataToSend.command -eq "custom")
+        {
             $data =  "$" + $dataToSend.command + "$" + $dataToSend.param + "[" + $dataToSend.data + "]"
         }
-        else{
+        else
+        {
             $data = "$" + $dataToSend.command + "$" + $dataToSend.isBig + "[" + $dataToSend.data + "]"
         }
      
-        try {
-
-                                                                                                                                        
+        try
+        {                                                                                                                      
             # $sw = [System.Diagnostics.Stopwatch]::StartNew()
             $out_port_a.WriteLine($data)
             Write-Host $data
@@ -127,11 +145,13 @@ while ($http.IsListening)
 
             # Write-Host "Execution Time: $($sw.ElapsedMilliseconds) ms"
         }
-        catch {
+        catch
+        {
             Write-Host "The port timed out, restart the server or wait for a while and than send omwthing else"
             $out_port_a.DiscardOutBuffer() # Discard the Output Buffer so as to remove backlog
             Start-Sleep -Milliseconds 300
         }
+        
         Add-CorsHeaders -response $context.Response
         $context.Response.StatusCode = 200
         $context.Response.OutputStream.Close()
@@ -139,7 +159,8 @@ while ($http.IsListening)
     }
     
     # Handle GET requests
-    if ($context.Request.HttpMethod -eq 'GET' -and $context.Request.RawUrl -eq '/kill') {
+    if ($context.Request.HttpMethod -eq 'GET' -and $context.Request.RawUrl -eq '/kill')
+    {
         Add-CorsHeaders -response $context.Response
         $context.Response.StatusCode = 200
         $context.Response.OutputStream.Close()
