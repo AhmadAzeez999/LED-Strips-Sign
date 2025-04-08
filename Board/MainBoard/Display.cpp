@@ -126,8 +126,6 @@ bool Display::needsSpacing(char current, char next, bool useBigFont)
   return currentRightEdge && nextLeftEdge;
 }
 
-
-
 int Display::getCharacterWidth7x7(char c)
 {
   int index = getCharIndex(c);
