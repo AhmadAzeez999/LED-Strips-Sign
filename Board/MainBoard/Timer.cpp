@@ -18,6 +18,7 @@ void Timer::setupRTC()
   {
     Serial.println("RTC lost power, setting time!");
      // syncs with PC compile time
+     rtc.adjust(DateTime(F(__DATE__), F(__TIME__))); 
   }
   rtc.adjust(DateTime(F(__DATE__), F(__TIME__))); 
 }
