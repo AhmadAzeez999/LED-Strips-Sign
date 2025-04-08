@@ -10,7 +10,7 @@ RemoteControl::RemoteControl() : bright(255), remoteStatus(false), enteredValue(
 
 void RemoteControl::setupRemote()
 {
-    timers.setupRTC();
+    //timers.setupRTC();
     IrReceiver.begin(IR_PIN, ENABLE_LED_FEEDBACK);
 }
 
@@ -57,7 +57,7 @@ void RemoteControl::toggleRemote(String remoteCode)
     Display::getInstance().clearBuffer(true);
     Display::getInstance().displayText(remoteStatus ? "RMON" : "RMOFF", "", "static", "yes");
     Display::getInstance().updateLEDs();
-    timers.displayTimeOfDay(false);
+    Timer::getInstance().displayTimeOfDay(false);
     delay(500);
   }
 }
@@ -65,7 +65,7 @@ void RemoteControl::toggleRemote(String remoteCode)
 void RemoteControl::handleTimerCodes(String remoteCode)
 {
   char text[8];
-  if(timers.getTimerRunning() == false)
+  if(Timer::getInstance().getTimerRunning() == false)
   {
     for (uint8_t i = 0; i < 10; i++)
     {
@@ -74,32 +74,32 @@ void RemoteControl::handleTimerCodes(String remoteCode)
             sprintf(text, "%d+:%02d", i+1, 0);
             Display::getInstance().displayText(text, "", "static", "yes");
             minu = i+1;
-            timers.displayTimeOfDay(false);
+            Timer::getInstance().displayTimeOfDay(false);
             break;
         }
     }
   }
 
-  if (remoteCode == "9768" && timers.getTimerRunning() == false)
+  if (remoteCode == "9768" && Timer::getInstance().getTimerRunning() == false)
   {
     Serial.println(minu);
-    timers.startTimer(minu, 0);
+    Timer::getInstance().startTimer(minu, 0);
   }
-  else if(remoteCode == "b946" && timers.getTimerRunning() == true)
+  else if(remoteCode == "b946" && Timer::getInstance().getTimerRunning() == true)
   {
-    timers.stopTimer();
+    Timer::getInstance().stopTimer();
     minu = 0;
   }
-  else if(remoteCode == "b847" && timers.getTimerPaused() == true)
+  else if(remoteCode == "b847" && Timer::getInstance().getTimerPaused() == true)
   {
-    timers.resumeTimer();
+    Timer::getInstance().resumeTimer();
   }
-  else if(remoteCode == "b54a" && timers.getTimerPaused() == false)
+  else if(remoteCode == "b54a" && Timer::getInstance().getTimerPaused() == false)
   {
-    timers.pauseTimer();
+    Timer::getInstance().pauseTimer();
   }
-  else if (remoteCode == "9768" && timers.getTimerRunning() == true) {
-    timers.resetTimer();
+  else if (remoteCode == "9768" && Timer::getInstance().getTimerRunning() == true) {
+    Timer::getInstance().resetTimer();
   }
 }
 
@@ -108,13 +108,13 @@ void RemoteControl::setDefaultMessage(String remoteCode)
   if(remoteCode == "8679")
   {
     displayDefaultMessage();
-    timers.displayTimeOfDay(false);
+    Timer::getInstance().displayTimeOfDay(false);
   }
 }
 
 void RemoteControl::useRemote()
 {
-  timers.updateTimer();
+  Timer::getInstance().updateTimer();
 
   if (IrReceiver.decode())
   {
@@ -175,7 +175,7 @@ void RemoteControl::useRemote()
           changeFColourScheme();
         }
 
-        if (remoteValue == "b649") timers.displayTimeOfDay(true);
+        if (remoteValue == "b649") Timer::getInstance().displayTimeOfDay(true);
 
         if (remoteValue == "f807") adjustBrightness(51);
         else if (remoteValue == "f40b") adjustBrightness(-51);
@@ -184,7 +184,7 @@ void RemoteControl::useRemote()
         {
           Display::getInstance().displayText("00+:00", "", "static", "yes");
           timerInputMode = true;
-          timers.displayTimeOfDay(false);
+          Timer::getInstance().displayTimeOfDay(false);
           manualTimerInput(); // while loop
           delay(500);
         }
@@ -219,7 +219,7 @@ void RemoteControl::manualTimerInput()
       {
         Serial.println("Exit Command Received.");
         timerInputMode = false;
-        timers.parseTimerInput(inputToSend);
+        Timer::getInstance().parseTimerInput(inputToSend);
       }
 
       // Convert IR code to a digit
