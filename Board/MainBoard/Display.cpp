@@ -87,47 +87,6 @@ void Display::setPixel(int x, int y, uint32_t color)
   frameBuffer[y][x] = color; // Update pixel in frame buffer
 }
 
-//universal method for checking space..
-bool Display::needsSpacing(char current, char next, bool useBigFont)
-{
-  int currentIndex = useBigFont ? getCharIndex15x15(current) : getCharIndex(current);
-  int nextIndex    = useBigFont ? getCharIndex15x15(next)    : getCharIndex(next);
-
-  if (currentIndex == -1 || nextIndex == -1)
-    return true;  // Fallback to safe spacing
-
-  bool currentRightEdge = false;
-  bool nextLeftEdge     = false;
-
-  if (useBigFont)
-  {
-    for (int row = 0; row < 13; row++)
-    {
-      uint16_t curRow = pgm_read_word(&(charSet15x15Hex[currentIndex][row]));
-      uint16_t nextRow = pgm_read_word(&(charSet15x15Hex[nextIndex][row]));
-
-      if (curRow & (1 << 0)) currentRightEdge = true;
-      if (nextRow & (1 << 14)) nextLeftEdge = true;
-
-      if (currentRightEdge && nextLeftEdge) break;
-    }
-  }
-  else
-  {
-    for (int row = 0; row < 7; row++)
-    {
-      if (pgm_read_byte(&(charSet7x7[currentIndex][row][6]))) currentRightEdge = true;
-      if (pgm_read_byte(&(charSet7x7[nextIndex][row][0])))     nextLeftEdge = true;
-
-      if (currentRightEdge && nextLeftEdge) break;
-    }
-  }
-
-  return currentRightEdge && nextLeftEdge;
-}
-
-
-
 int Display::getCharacterWidth7x7(char c)
 {
   int index = getCharIndex(c);
@@ -380,9 +339,7 @@ void Display::scrollTextContinuous(const char* text1, const char* text2, int tot
           }
         }
         
-        char nextChar = (i < textLen - 1) ? text[i + 1] : ' ';
-        bool spacingNeeded = needsSpacing(text[i], nextChar, useBigFont);
-        currentX += charWidth + (spacingNeeded ? 1 : 0);
+        currentX += charWidth + 1;
       }
       
       // Update the display
@@ -443,9 +400,7 @@ void Display::scrollTextAndStop(const char* text1, const char* text2, int totalW
             drawCharacter7x7(text2[i], currentX, 8, currentBottomColourHex);
         }
       }
-      char nextChar = (i < textLen - 1) ? text[i + 1] : ' ';
-      bool spacingNeeded = needsSpacing(text[i], nextChar, useBigFont);
-      currentX += charWidth + (spacingNeeded ? 1 : 0);
+      currentX += charWidth + 1;
     }
     
     updateLEDs();
@@ -551,9 +506,7 @@ void Display::displayStaticText(const char* text1, const char* text2, bool useBi
     {
       int charWidth = getCharacterWidth15x15(text1[i]);
       drawCharacter15x15(text1[i], currentX, startY, currentFullColourHex);
-      char nextChar = (i < textLen - 1) ? text[i + 1] : ' ';
-      bool spacingNeeded = needsSpacing(text[i], nextChar, useBigFont);
-      currentX += charWidth + (spacingNeeded ? 1 : 0);
+      currentX += charWidth + 1;
     }
   }
   else
@@ -574,9 +527,7 @@ void Display::displayStaticText(const char* text1, const char* text2, bool useBi
     {
       int charWidth = getCharacterWidth7x7(text1[i]);
       drawCharacter7x7(text1[i], currentX, 0, currentTopColourHex);
-      char nextChar = (i < textLen - 1) ? text[i + 1] : ' ';
-      bool spacingNeeded = needsSpacing(text[i], nextChar, useBigFont);
-      currentX += charWidth + (spacingNeeded ? 1 : 0);
+      currentX += charWidth + 1;
     }
     
     // Render Bottom Row
@@ -585,9 +536,7 @@ void Display::displayStaticText(const char* text1, const char* text2, bool useBi
     {
       int charWidth = getCharacterWidth7x7(text2[i]);
       drawCharacter7x7(text2[i], currentX, 8, currentBottomColourHex);
-      char nextChar = (i < textLen - 1) ? text[i + 1] : ' ';
-      bool spacingNeeded = needsSpacing(text[i], nextChar, useBigFont);
-      currentX += charWidth + (spacingNeeded ? 1 : 0);
+      currentX += charWidth + 1;
     }
   }
   
