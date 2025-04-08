@@ -69,6 +69,7 @@ void loop()
 void parseInput(String input)
 {
     Serial.print(input);
+    timer.displayTimeOfDay(false); // In case time of day is being displayed
 
   // Check if input starts with $
   if (input.charAt(0) != '$')
@@ -112,6 +113,10 @@ void parseInput(String input)
   else if (command == "resume")
   {
     timer.resumeTimer();
+  }
+  else if (command == "tod")
+  {
+    timer.displayTimeOfDay(true);
   }
   else
   {
