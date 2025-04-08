@@ -6,7 +6,7 @@
 
 RTC_DS3231 rtc;// Global RTC instance
 bool useBigFont = true;  // Toggle between 7x7 and 15x15 font sizes
-Timer timer; 
+Timer& timer = Timer::getInstance();
 RemoteControl remote; // Global remote variable
 
 // Variables for parsing the received message
@@ -29,9 +29,7 @@ Display& display = Display::getInstance();
 void setup()
 {
   Serial.begin(9600);
-  Timer::getInstance().setupRTC();
-  //timer.setupRTC();
-  
+  timer.setupRTC();  
   remote.setupRemote();
   display.setup(255);
 
