@@ -53,6 +53,9 @@ void loop()
 {
   if (Serial.available())
   {
+    // Serial.begin(9600); Resetting the arduino with every message
+    // display.setup(100);
+
     // Extracting size
     String input = Serial.readStringUntil('\n');  // Read until newline
     parseInput(input);

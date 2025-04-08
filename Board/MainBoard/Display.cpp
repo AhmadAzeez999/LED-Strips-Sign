@@ -351,6 +351,7 @@ void Display::scrollTextContinuous(const char* text1, const char* text2, int tot
       // Check for data available on Serial port or other interrupt condition
       if (Serial.available() > 0)
       {
+        clearBuffer(useBigFont);
         scrollInterrupt = true;
       }
     }

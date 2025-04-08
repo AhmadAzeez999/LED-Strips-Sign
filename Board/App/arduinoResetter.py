@@ -82,7 +82,7 @@ class ArduinoResetApp:
 
         except Exception as e:
             self.status_var.set(f"Error: {str(e)}")
-            messagebox.showerror("Reset Error", f"Failed to reset Arduino: {str(e)}")
+            messagebox.showerror("Reset Error", f"Failed to reset Arduino, close the server if it's open. Error message: {str(e)}")
 
 if __name__ == "__main__":
     root = tk.Tk()
