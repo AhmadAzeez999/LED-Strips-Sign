@@ -31,7 +31,7 @@ void setup()
   Serial.begin(9600);
   timer.setupRTC();
   remote.setupRemote();
-  display.setup(100);
+  display.setup(255);
 
   display.displayText("LED STRIPS", "SIGNBOARD", "static", "no");
   // display.displayText("2+:00", "", "static", "yes");

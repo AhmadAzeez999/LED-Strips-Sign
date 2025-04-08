@@ -15,9 +15,10 @@ public:
     void resetTimer();
     bool getTimerRunning();
     bool getTimerPaused();
+    void updateCountdown();
+    void updateTimeOfDay();
     void updateTimer();
     void parseTimerInput(String input);
-    void timeOfDays();
     void displayTimeOfDay(bool tod);
 
 private:
@@ -26,11 +27,15 @@ private:
     TimeSpan remainingTime;
     bool timerActive = false;
     bool timerPaused = false;
-    bool timeOfDay = false;
     unsigned long lastUpdateMillis = 0;
     int currentMin = 0;
     int currentSec = 0;
-    void displayText(const char* text, const char* param1, const char* param2, const char* param3, bool flag);
+    enum TimerMode {
+        MODE_TIMER,
+        MODE_CLOCK
+    };
+    TimerMode currentMode = MODE_TIMER;
+    //void displayText(const char* text, const char* param1, const char* param2, const char* param3, bool flag);
 };
 
 #endif
