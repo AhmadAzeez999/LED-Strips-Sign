@@ -3,6 +3,18 @@
 #include <Wire.h>
 #include "Display.h"
 
+Timer* Timer::instance = nullptr;
+
+Timer& Timer::getInstance()
+{
+  if (instance == nullptr)
+  {
+    instance = new Timer();
+  }
+
+  return *instance;
+}
+
 // Constructor
 Timer::Timer() : rtc() {}
 

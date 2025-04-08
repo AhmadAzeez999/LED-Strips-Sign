@@ -7,6 +7,7 @@ class Timer
 {
 public:
     Timer();  // Constructor
+    static Timer& getInstance();
     void setupRTC();
     void startTimer(int minutes, int seconds);
     void pauseTimer();
@@ -23,6 +24,7 @@ public:
 
 private:
     RTC_DS3231 rtc;
+    static Timer* instance;
     DateTime targetTime;
     TimeSpan remainingTime;
     bool timerActive = false;

@@ -29,7 +29,9 @@ Display& display = Display::getInstance();
 void setup()
 {
   Serial.begin(9600);
-  timer.setupRTC();
+  Timer::getInstance().setupRTC();
+  //timer.setupRTC();
+  
   remote.setupRemote();
   display.setup(255);
 
