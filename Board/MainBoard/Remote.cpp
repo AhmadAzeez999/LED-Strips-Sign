@@ -56,6 +56,7 @@ void RemoteControl::toggleRemote(String remoteCode)
     Display::getInstance().clearBuffer(true);
     Display::getInstance().displayText(remoteStatus ? "RMON" : "RMOFF", "", "static", "yes");
     Display::getInstance().updateLEDs();
+    timers.displayTimeOfDay(false);
     delay(500);
   }
 }
@@ -72,6 +73,7 @@ void RemoteControl::handleTimerCodes(String remoteCode)
             sprintf(text, "%d+:%02d", i+1, 0);
             Display::getInstance().displayText(text, "", "static", "yes");
             minu = i+1;
+            timers.displayTimeOfDay(false);
             break;
         }
     }
@@ -105,12 +107,14 @@ void RemoteControl::setDefaultMessage(String remoteCode)
   if(remoteCode == "8679")
   {
     displayDefaultMessage();
+    timers.displayTimeOfDay(false);
   }
 }
 
 void RemoteControl::useRemote()
 {
   timers.updateTimer();
+  timers.timeOfDays();
 
   if (IrReceiver.decode())
   {
@@ -171,6 +175,8 @@ void RemoteControl::useRemote()
           changeFColourScheme();
         }
 
+        if (remoteValue == "a758") timers.displayTimeOfDay(true);
+
         if (remoteValue == "f807") adjustBrightness(1);
         else if (remoteValue == "f40b") adjustBrightness(-1);
 
@@ -178,6 +184,7 @@ void RemoteControl::useRemote()
         {
           Display::getInstance().displayText("00+:00", "", "static", "yes");
           timerInputMode = true;
+          timers.displayTimeOfDay(false);
           manualTimerInput(); // while loop
           delay(500);
         }

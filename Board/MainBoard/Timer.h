@@ -17,6 +17,8 @@ public:
     bool getTimerPaused();
     void updateTimer();
     void parseTimerInput(String input);
+    void timeOfDays();
+    void displayTimeOfDay(bool tod);
 
 private:
     RTC_DS3231 rtc;
@@ -24,6 +26,7 @@ private:
     TimeSpan remainingTime;
     bool timerActive = false;
     bool timerPaused = false;
+    bool timeOfDay = false;
     unsigned long lastUpdateMillis = 0;
     int currentMin = 0;
     int currentSec = 0;
