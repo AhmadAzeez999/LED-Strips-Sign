@@ -78,8 +78,8 @@ class ArduinoResetApp:
 
             self.status_var.set("Reset command sent successfully")
             self.root.update()
-            time.sleep(1)  # Optional: brief pause before closing
-            self.root.destroy()  # <-- This line closes the window/app
+            time.sleep(1)  # Optional: brief pause before closing (might removed this later)
+            self.root.destroy()  # <-- 0_- This line closes the window/app (remove if it shouldn't be a feature, it's not really needed to honest, idk)
 
         except Exception as e:
             self.status_var.set(f"Error: {str(e)}")
