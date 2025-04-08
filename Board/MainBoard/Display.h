@@ -53,6 +53,9 @@ public:
  
   // Display setup
   void setup(int brightness);
+  //space calculation handeler
+  bool needsSpacing(char current, char next, bool useBigFont);
+
  
   // Buffer management
   void clearBuffer(bool bigFont);

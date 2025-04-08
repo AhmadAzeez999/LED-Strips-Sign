@@ -17,8 +17,10 @@ void Timer::setupRTC()
   if (rtc.lostPower())
   {
     Serial.println("RTC lost power, setting time!");
-    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));  // syncs with PC compile time
+     // syncs with PC compile time
+     rtc.adjust(DateTime(F(__DATE__), F(__TIME__))); 
   }
+  rtc.adjust(DateTime(F(__DATE__), F(__TIME__))); 
 }
 
 void Timer::startTimer(int minutes, int seconds)
@@ -67,6 +69,29 @@ void Timer::stopTimer()
   timerActive = false;
   timerPaused = false;
   Display::getInstance().displayText("STOP", "", "static", "yes");
+}
+
+void Timer::timeOfDays()
+{
+  if (!timeOfDay) return;
+  
+  if(millis() - lastUpdateMillis >= 1000)
+  {
+    DateTime now = rtc.now().unixtime();
+    
+    int mins = now.hour();
+    int secs = now.minute();
+    Serial.println(now.timestamp());
+    char text[8];
+    sprintf(text, "%d+:%02d", mins, secs);
+    Display::getInstance().displayText(text, "", "static", "yes");
+    lastUpdateMillis = millis();
+  }
+}
+
+void Timer::displayTimeOfDay(bool tod)
+{
+  timeOfDay = tod;
 }
 
 void Timer::updateTimer()
