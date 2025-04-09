@@ -1,4 +1,5 @@
 #include "Display.h"
+#include "CharacterSet15x15Hex.h"
 
 // Initialize static instance to nullptr
 Display* Display::instance = nullptr;
@@ -86,6 +87,56 @@ void Display::setPixel(int x, int y, uint32_t color)
     return;  // Ignore out-of-bounds pixels
   frameBuffer[y][x] = color; // Update pixel in frame buffer
 }
+ 
+ 
+//vertical offset for characters
+  int Display::getCharVerticalOffset(char c, bool useBigFont) {
+  if (!useBigFont) return 0;  // Skip shift for 7x7 font
+  int index = getCharIndex15x15(c);
+  if (index < 0 || index >= 75) return 0;
+  return (int)pgm_read_byte(&(charVerticalOffset15x15[index]));
+}
+//HERE IS THE NEW SPACING FUNCTION
+bool Display::needsSpacing(char current, char next, bool useBigFont) {
+  int currentIndex = useBigFont ? getCharIndex15x15(current) : getCharIndex(current);
+  int nextIndex    = useBigFont ? getCharIndex15x15(next)    : getCharIndex(next);
+  if (currentIndex == -1 || nextIndex == -1) return true;
+
+  int currentRight = -1;
+  int nextLeft = 100;
+
+  if (useBigFont) {
+    for (int row = 0; row < 13; row++) {
+      uint16_t curRow = pgm_read_word(&(charSet15x15Hex[currentIndex][row]));
+      uint16_t nextRow = pgm_read_word(&(charSet15x15Hex[nextIndex][row]));
+
+      for (int col = 14; col >= 0; col--) {
+        if (curRow & (1 << col)) { currentRight = max(currentRight, col); break; }
+      }
+      for (int col = 0; col < 15; col++) {
+        if (nextRow & (1 << col)) { nextLeft = min(nextLeft, col); break; }
+      }
+    }
+  } else {
+    for (int row = 0; row < 7; row++) {
+      for (int col = 6; col >= 0; col--) {
+        if (pgm_read_byte(&(charSet7x7[currentIndex][row][col]))) {
+          currentRight = max(currentRight, col);
+          break;
+        }
+      }
+      for (int col = 0; col < 7; col++) {
+        if (pgm_read_byte(&(charSet7x7[nextIndex][row][col]))) {
+          nextLeft = min(nextLeft, col);
+          break;
+        }
+      }
+    }
+  }
+
+  return currentRight >= 6 || nextLeft <= 0 || (currentRight + 1 >= 7 - nextLeft);
+}
+
 
 int Display::getCharacterWidth7x7(char c)
 {
@@ -135,6 +186,8 @@ int Display::getCharacterWidth15x15(char c)
   return (maxCol >= minCol) ? (maxCol - minCol + 1) : 0;  // Ensure at least 1-pixel width
 }
 
+
+
 void Display::drawCharacter7x7(char c, int x, int y, uint32_t color)
 {
   int index = getCharIndex(c);
@@ -158,6 +211,8 @@ void Display::drawCharacter7x7(char c, int x, int y, uint32_t color)
 
   int charWidth = maxCol - minCol + 1;
 
+  //
+
   // Draw only the necessary part of the character
   for (int row = 0; row < 7; row++)
   {
@@ -174,7 +229,6 @@ void Display::drawCharacter7x7(char c, int x, int y, uint32_t color)
 void Display::drawCharacter15x15(char c, int x, int y, uint32_t color)
 {
   int index = getCharIndex15x15(c);
-
   if (index == -1)
     return;
 
@@ -187,7 +241,7 @@ void Display::drawCharacter15x15(char c, int x, int y, uint32_t color)
 
     for (int col = 0; col < 15; col++)
     {
-      if (rowData & (1 << (14 - col))) // Pixel is set
+      if (rowData & (1 << (14 - col)))
       {
         if (col < minCol) minCol = col;
         if (col > maxCol) maxCol = col;
@@ -196,6 +250,9 @@ void Display::drawCharacter15x15(char c, int x, int y, uint32_t color)
   }
 
   int charWidth = maxCol - minCol;
+
+  // ✅ STEP 3a: Get offset
+  int yOffset = getCharVerticalOffset(c, true);
 
   // Draw only the necessary part of the character
   for (int row = 0; row < 13; row++)
@@ -206,11 +263,13 @@ void Display::drawCharacter15x15(char c, int x, int y, uint32_t color)
     {
       if ((rowData >> (14 - col)) & 1)
       {
-        setPixel(x + (col - minCol), y + row, color);
+        // ✅ STEP 3b: Apply offset to y
+        setPixel(x + (col - minCol), y + row + yOffset, color);
       }
     }
   }
 }
+
 
 void Display::displayText(const char* text1, const char* text2, const char* command, const char* displayType)
 {
@@ -265,106 +324,136 @@ int Display::calculateTextWidth(const char* text, bool useBigFont)
 // Continuous scrolling implementation
 void Display::scrollTextContinuous(const char* text1, const char* text2, int totalWidth, bool useBigFont)
 {
-  int scrollSpeed = 100;  // Milliseconds between shifts
+  int scrollSpeed = 100;
   int text1Len = strlen(text1);
   int text2Len = strlen(text2);
   int longerTextLen = (text1Len > text2Len) ? text1Len : text2Len;
   int shift = 0;
 
   scrollInterrupt = false;
-  
-  // We'll need to make a copy of the text to ensure it remains valid
-  // even if the original gets overwritten by a new command
+
   char* text1Copy = new char[text1Len + 1];
   char* text2Copy = new char[text2Len + 1];
   strcpy(text1Copy, text1);
   strcpy(text2Copy, text2);
-  
+
   unsigned long previousMillis = 0;
-  unsigned long currentMillis;
-  
-  // Create a separate task or thread for scrolling
-  // This will run until interrupted
+
   while (!scrollInterrupt)
   {
-    currentMillis = millis();
-    
-    // Check if it's time to update the scroll position
+    unsigned long currentMillis = millis();
     if (currentMillis - previousMillis >= scrollSpeed)
     {
       previousMillis = currentMillis;
-      
-      // Clear the buffer for the new frame
       clearBuffer(useBigFont);
-      
-      // Calculate the x position with wrapping for infinite scroll
       int effectiveShift = shift % (totalWidth + NUMPIXELS);
       int currentX = NUMPIXELS - effectiveShift;
-      
-      // If we're approaching the end of text, start drawing a copy at the beginning
+
       for (int i = 0; i < longerTextLen; i++)
       {
-        int charWidth = useBigFont ? 
-          getCharacterWidth15x15(text1Copy[i]) : 
-          getCharacterWidth7x7((text1Len > text2Len) ? text1Copy[i] : text2Copy[i]);
-          
+        int charWidth = useBigFont ? getCharacterWidth15x15(text1Copy[i])
+                                   : getCharacterWidth7x7((text1Len > text2Len) ? text1Copy[i] : text2Copy[i]);
+
         if (currentX >= -charWidth && currentX < NUMPIXELS)
         {
           if (useBigFont)
-          {
             drawCharacter15x15(text1Copy[i], currentX, 1, currentFullColourHex);
-          }
           else
           {
-            if (i < text1Len)
-              drawCharacter7x7(text1Copy[i], currentX, 0, currentTopColourHex);
-            if (i < text2Len)
-              drawCharacter7x7(text2Copy[i], currentX, 8, currentBottomColourHex);
+            if (i < text1Len) drawCharacter7x7(text1Copy[i], currentX, 0, currentTopColourHex);
+            if (i < text2Len) drawCharacter7x7(text2Copy[i], currentX, 8, currentBottomColourHex);
           }
         }
-        
-        // Also draw the character again after a full text width to create seamless loop
-        if (currentX + totalWidth + NUMPIXELS >= 0 && currentX + totalWidth + NUMPIXELS < NUMPIXELS * 2)
+
+        // second draw for seamless loop
+        int loopX = currentX + totalWidth + NUMPIXELS;
+        if (loopX >= 0 && loopX < NUMPIXELS * 2)
         {
           if (useBigFont)
-          {
-            drawCharacter15x15(text1Copy[i], currentX + totalWidth + NUMPIXELS, 1, currentFullColourHex);
-          }
+            drawCharacter15x15(text1Copy[i], loopX, 1, currentFullColourHex);
           else
           {
-            if (i < text1Len)
-              drawCharacter7x7(text1Copy[i], currentX + totalWidth + NUMPIXELS, 0, currentTopColourHex);
-            if (i < text2Len)
-              drawCharacter7x7(text2Copy[i], currentX + totalWidth + NUMPIXELS, 8, currentBottomColourHex);
+            if (i < text1Len) drawCharacter7x7(text1Copy[i], loopX, 0, currentTopColourHex);
+            if (i < text2Len) drawCharacter7x7(text2Copy[i], loopX, 8, currentBottomColourHex);
           }
         }
-        
-        currentX += charWidth + 1;
+
+        // spacing logic
+        currentX += charWidth;
+        if (useBigFont)
+        {
+          if (i + 1 < text1Len && needsSpacing(text1Copy[i], text1Copy[i + 1], true))
+            currentX += 1;
+        }
+        else
+        {
+          bool spaced = false;
+          if (i + 1 < text1Len && needsSpacing(text1Copy[i], text1Copy[i + 1], false))
+            spaced = true;
+          if (i + 1 < text2Len && needsSpacing(text2Copy[i], text2Copy[i + 1], false))
+            spaced = true;
+          if (spaced)
+            currentX += 1;
+        }
       }
-      
-      // Update the display
+
       updateLEDs();
-      
-      // Increment the shift for the next frame
       shift++;
-      
-      // Check for data available on Serial port or other interrupt condition
+
       if (Serial.available() > 0)
       {
         clearBuffer(useBigFont);
         scrollInterrupt = true;
       }
     }
-    
-    // Small delay to prevent hogging the CPU
-    // This also gives other parts of the code a chance to run
     delay(1);
   }
-  
-  // Clean up the text copy
+
   delete[] text1Copy;
   delete[] text2Copy;
 }
+
+//Breathing implementation
+void Display::breatheText(const char* text1, const char* text2, bool useBigFont)
+{
+  const int minBrightness = 10;
+  const int maxBrightness = 255;
+  const int steps = 40;
+  const int delayMs = 30;
+
+  int direction = 1;
+  int currentStep = 0;
+  scrollInterrupt = false;
+
+  // Draw the static text once at brightness 0
+  setBrightness(0);
+  displayStaticText(text1, text2, useBigFont);
+
+  while (!scrollInterrupt)
+  {
+    // Calculate brightness value
+    float t = (float)currentStep / steps;
+    float eased = 0.5 * (1 - cos(PI * t));  // cosine easing for smoothness
+    int brightness = minBrightness + (int)(eased * (maxBrightness - minBrightness));
+
+    setBrightness(brightness);
+    updateLEDs();
+
+    delay(delayMs);
+
+    currentStep += direction;
+    if (currentStep >= steps || currentStep <= 0)
+      direction *= -1;
+
+    // Check for user interrupt
+    if (Serial.available() > 0)
+    {
+      scrollInterrupt = true;
+      clearBuffer(useBigFont);
+    }
+  }
+}
+
 
 // Scroll and stop implementation
 void Display::scrollTextAndStop(const char* text1, const char* text2, int totalWidth, bool useBigFont) {
@@ -372,37 +461,44 @@ void Display::scrollTextAndStop(const char* text1, const char* text2, int totalW
   int text1Len = strlen(text1);
   int text2Len = strlen(text2);
   int longerTextLen = (text1Len > text2Len) ? text1Len : text2Len;
-  int stopPosition = 0; // Stop position (left edge)
-  
-  // Scroll from right edge to stop position
-  for (int shift = NUMPIXELS; shift >= stopPosition; shift--)
-  {
+  int stopPosition = 0;
+
+  for (int shift = NUMPIXELS; shift >= stopPosition; shift--) {
     clearBuffer(useBigFont);
     int currentX = shift;
-    
-    for (int i = 0; i < longerTextLen; i++)
-    {
-      int charWidth = useBigFont ? 
-        getCharacterWidth15x15(text1[i]) : 
-        getCharacterWidth7x7((text1Len > text2Len) ? text1[i] : text2[i]);
-        
-      if (currentX >= -charWidth && currentX < NUMPIXELS)
-      {
-        if (useBigFont)
-        {
+
+    for (int i = 0; i < longerTextLen; i++) {
+      int charWidth = useBigFont
+        ? getCharacterWidth15x15(text1[i])
+        : getCharacterWidth7x7((text1Len > text2Len) ? text1[i] : text2[i]);
+
+      if (currentX >= -charWidth && currentX < NUMPIXELS) {
+        if (useBigFont) {
           drawCharacter15x15(text1[i], currentX, 1, currentFullColourHex);
-        }
-        else
-        {
+        } else {
           if (i < text1Len)
             drawCharacter7x7(text1[i], currentX, 0, currentTopColourHex);
           if (i < text2Len)
             drawCharacter7x7(text2[i], currentX, 8, currentBottomColourHex);
         }
       }
-      currentX += charWidth + 1;
+
+      // Smart spacing
+      currentX += charWidth;
+      if (useBigFont) {
+        if (i + 1 < text1Len && needsSpacing(text1[i], text1[i + 1], true))
+          currentX += 1;
+      } else {
+        bool spaced = false;
+        if (i + 1 < text1Len && needsSpacing(text1[i], text1[i + 1], false))
+          spaced = true;
+        if (i + 1 < text2Len && needsSpacing(text2[i], text2[i + 1], false))
+          spaced = true;
+        if (spaced)
+          currentX += 1;
+      }
     }
-    
+
     updateLEDs();
     delay(speed);
   }
@@ -410,104 +506,50 @@ void Display::scrollTextAndStop(const char* text1, const char* text2, int totalW
 
 void Display::fadeInText(const char* text1, const char* text2, bool useBigFont)
 {
-  int steps = 20;  // Number of fade steps
-  int delay_ms = 50;  // Delay between steps
+  const int steps = 20;
+  const int delay_ms = 50;
   int currentBrightness;
-  
-  // Store the original brightness value
-  int originalBrightness = 0;
-  for (int i = 0; i < NUM_STRIPS; i++)
-  {
-    originalBrightness = strips[i].getBrightness();
-    break;  // All strips should have the same brightness
-  }
-  
-  // Draw the text at full color but with brightness at 0
+
+  // Grab brightness from the first strip (assumes consistent brightness)
+  int originalBrightness = strips[0].getBrightness();
+
+  // Draw text with brightness at 0
   setBrightness(0);
-  displayStaticText(text1, text2, useBigFont);
-  
-  // Gradually increase brightness
-  for (int step = 1; step <= steps; step++)
-  {
+  displayStaticText(text1, text2, useBigFont);  // already has smart spacing
+
+  // Fade in smoothly
+  for (int step = 1; step <= steps; step++) {
     currentBrightness = (originalBrightness * step) / steps;
     setBrightness(currentBrightness);
     updateLEDs();
     delay(delay_ms);
   }
-  
-  // Restore original brightness
+
+  // Ensure final brightness is exact
   setBrightness(originalBrightness);
 }
 
-// Static text display implementation
 void Display::displayStaticText(const char* text1, const char* text2, bool useBigFont)
 {
-  bool isTimer = false;
-  int colonCount = 0;
-  for (int i = 0; i < strlen(text1); i++)
-  {
-    if (text1[i] == ':')
-    {
-      isTimer = true;
-      break;
-    } 
-    // if (!isdigit(text1[i]) && text1[i] != ':')
-    // {
-    //     isTimer = false;
-    //     break;
-    // }
-  }
+  clearBuffer(useBigFont);
 
-  // if (colonCount == 1 || colonCount == 2)
-  //   isTimer = true;
-  
-  // if (isTimer)
-  // {
-  //   Serial.println("Is a timer");
-  //   int textLen = strlen(text1);
-  //   int charBoxWidth = isTimer ? 9 : 0;
-  //   int spacing = isTimer ? 2 : 1;
-  //   int totalWidth = 0;
-
-  //   for (int i = 0; i < textLen; i++)
-  //   {
-  //       if (isTimer)
-  //           totalWidth += (text1[i] == ':' ? 4 : charBoxWidth) + spacing;
-  //       else
-  //           totalWidth += getCharacterWidth15x15(text1[i]) + 1;
-  //   }
-
-  //   int startX = (NUMPIXELS - totalWidth) / 2;
-  //   int currentX = startX;
-  //   int startY = 2;
-
-  //   clearBuffer(useBigFont);
-
-  //   for (int i = 0; i < textLen; i++)
-  //   {
-  //     int specialCharWidth = (text1[i] == ':') ? 4 : charBoxWidth;
-  //     int specialSpacing   = (text1[i] == ':') ? 3 : spacing;
-  //     drawCharacter15x15(text1[i], currentX, startY, currentFullColourHex);
-  //     currentX += specialCharWidth + specialSpacing;
-      
-  //   }
-  // }
-  
   if (useBigFont)
   {
     // Big Font Mode (Single Row)
     int textLen = strlen(text1);
     int totalWidth = calculateTextWidth(text1, true);
-    
-    int startX = (NUMPIXELS - totalWidth) / 2;  // Centering dynamically
-    int startY = 2;                             // Big font starts at row 2
-    
+    int startX = (NUMPIXELS - totalWidth) / 2;
+    int startY = 1;
+
     int currentX = startX;
     for (int i = 0; i < textLen; i++)
     {
       int charWidth = getCharacterWidth15x15(text1[i]);
       drawCharacter15x15(text1[i], currentX, startY, currentFullColourHex);
-      currentX += charWidth + 1;
+      currentX += charWidth;
+
+      if (i + 1 < textLen && needsSpacing(text1[i], text1[i + 1], true))
+        currentX += 1;
     }
   }
   else
@@ -515,34 +557,41 @@ void Display::displayStaticText(const char* text1, const char* text2, bool useBi
     // Small Font Mode (Two Rows)
     int topLen = strlen(text1);
     int bottomLen = strlen(text2);
-    
+
     int topWidth = calculateTextWidth(text1, false);
     int bottomWidth = calculateTextWidth(text2, false);
-    
+
     int topX = (NUMPIXELS - topWidth) / 2;
     int bottomX = (NUMPIXELS - bottomWidth) / 2;
-    
-    // Render Top Row
+
+    // Top row
     int currentX = topX;
     for (int i = 0; i < topLen; i++)
     {
       int charWidth = getCharacterWidth7x7(text1[i]);
       drawCharacter7x7(text1[i], currentX, 0, currentTopColourHex);
-      currentX += charWidth + 1;
+      currentX += charWidth;
+
+      if (i + 1 < topLen && needsSpacing(text1[i], text1[i + 1], false))
+        currentX += 1;
     }
-    
-    // Render Bottom Row
+
+    // Bottom row
     currentX = bottomX;
     for (int i = 0; i < bottomLen; i++)
     {
       int charWidth = getCharacterWidth7x7(text2[i]);
       drawCharacter7x7(text2[i], currentX, 8, currentBottomColourHex);
-      currentX += charWidth + 1;
+      currentX += charWidth;
+
+      if (i + 1 < bottomLen && needsSpacing(text2[i], text2[i + 1], false))
+        currentX += 1;
     }
   }
-  
+
   updateLEDs();
 }
+
 
 void Display::setTopColour(const uint32_t colourHex)
 {
