@@ -6,7 +6,7 @@
 
 RTC_DS3231 rtc;// Global RTC instance
 bool useBigFont = true;  // Toggle between 7x7 and 15x15 font sizes
-Timer& timer = Timer::getInstance();
+Timer timer; 
 RemoteControl remote; // Global remote variable
 
 // Variables for parsing the received message
@@ -29,11 +29,12 @@ Display& display = Display::getInstance();
 void setup()
 {
   Serial.begin(9600);
-  timer.setupRTC();  
+  timer.setupRTC();
   remote.setupRemote();
-  display.setup(255);
+  display.setup(7);
 
   display.displayText("LED STRIPS", "SIGNBOARD", "static", "no");
+
   // display.displayText("2+:00", "", "static", "yes");
 
   // parseInput("$custom$start[(0,0,#2309ec),(0,1,#2309ec),(0,2,#ffffff)]");
@@ -67,7 +68,7 @@ void loop()
 void parseInput(String input)
 {
     Serial.print(input);
-    timer.displayTimeOfDay(false); // In case time of day is being displayed
+    timer.displayTimeOfDay(false); // In case the time of day is being displayed
 
   // Check if input starts with $
   if (input.charAt(0) != '$')
@@ -112,7 +113,7 @@ void parseInput(String input)
   {
     timer.resumeTimer();
   }
-  else if (command == "tod")
+  else if(command=="tod")
   {
     timer.displayTimeOfDay(true);
   }
