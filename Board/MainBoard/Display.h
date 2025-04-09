@@ -41,6 +41,7 @@ private:
   void drawTextLine(const char* text, int textLen, int* charWidths, int startX, int y, uint32_t color, int totalWidth, bool useBigFont);
   void scrollTextAndStop(const char* text1, const char* text2, int totalWidth, bool useBigFont);
   void fadeInText(const char* text1, const char* text2, bool useBigFont);
+  void breatheText(const char* text1, const char* text2, bool useBigFont);
   void displayStaticText(const char* text1, const char* text2, bool useBigFont);
   
 public:
@@ -53,8 +54,12 @@ public:
  
   // Display setup
   void setup(int brightness);
-  //space calculation handeler
+ 
+ 
+  //some Dynamic display calculation and height offset
   bool needsSpacing(char current, char next, bool useBigFont);
+  int getCharVerticalOffset(char c, bool useBigFont);
+
 
  
   // Buffer management
