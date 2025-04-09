@@ -6,7 +6,7 @@
 Timer timers;
 #define IR_PIN 10
 
-RemoteControl::RemoteControl() : bright(255), remoteStatus(false), enteredValue(0), minu(0), fIndex(0), tbIndex(0), timerInputMode(false) {}
+RemoteControl::RemoteControl() : bright(50), remoteStatus(false), enteredValue(0), minu(0), fIndex(0), tbIndex(0), timerInputMode(false) {}
 
 void RemoteControl::setupRemote()
 {
@@ -21,9 +21,9 @@ void RemoteControl::displayDefaultMessage()
     Display::getInstance().updateLEDs();
 }
 
-void RemoteControl::adjustBrightness(int change)
+void RemoteControl::adjustBrightness(float change)
 {
-  if ((change > 0 && bright < 255) || (change < 0 && bright > 51))
+  if ((change > 0 && bright < 255) || (change < 0 && bright > 25.5))
   {
     bright += change;
     Serial.println(bright);
@@ -31,7 +31,7 @@ void RemoteControl::adjustBrightness(int change)
     if(bright == 255){
       Display::getInstance().displayText("BrMax", "", "static", "yes");
     }
-    else if(bright == 51)
+    else if(bright == 25.5)
     {
       Display::getInstance().displayText("BrMin", "", "static", "yes");
     }
@@ -45,6 +45,7 @@ void RemoteControl::adjustBrightness(int change)
     for (int x = 0; x < NUM_STRIPS; x++)
     {
         Display::getInstance().setBrightness(bright);
+        
     }
   }
 }
@@ -177,8 +178,8 @@ void RemoteControl::useRemote()
 
         if (remoteValue == "b649") Timer::getInstance().displayTimeOfDay(true);
 
-        if (remoteValue == "f807") adjustBrightness(51);
-        else if (remoteValue == "f40b") adjustBrightness(-51);
+        if (remoteValue == "f807") adjustBrightness(25.5);
+        else if (remoteValue == "f40b") adjustBrightness(-25.5);
 
         if(remoteValue == "946b")
         {

@@ -5,7 +5,7 @@
 
 Timer* Timer::instance = nullptr;
 
-Timer& Timer::getInstance()
+Timer& Timer::getInstance() //Timer singleton 
 {
   if (instance == nullptr)
   {
@@ -90,26 +90,19 @@ void Timer::displayTimeOfDay(bool tod)
 
 void Timer::updateTimer()
 {
-  
   if (millis() - lastUpdateMillis >= 1000)
   {
     switch (currentMode)
-  {
-    case MODE_TIMER:
-      if (!timerActive || timerPaused)
-      {
-        // If timer is paused or done, optionally fall back to clock mode
-        // currentMode = MODE_CLOCK; // Uncomment if desired
+    {
+      case MODE_TIMER:
+        if (!timerActive || timerPaused) break;
+        updateCountdown();
         break;
-      }
-      updateCountdown();
-      break;
 
-    case MODE_CLOCK:
-      updateTimeOfDay();
-      break;
-  }
-
+      case MODE_CLOCK:
+        updateTimeOfDay();
+        break;
+    }
     lastUpdateMillis = millis();
   }
 }

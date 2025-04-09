@@ -16,7 +16,7 @@ private:
     void manualTimerInput();
     void changeTBColourScheme();
     void changeFColourScheme(); 
-    void adjustBrightness(int change);
+    void adjustBrightness(float change);
     void toggleRemote(String remoteCode);
     void handleTimerCodes(String remoteCode);
     void setDefaultMessage(String remoteCode);
