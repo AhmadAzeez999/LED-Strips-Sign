@@ -22,4 +22,16 @@ int getCharIndex15x15(char c)
         case ':': return 74;  // Colon
         default: return -1; // Return -1 for unsupported characters
     }
+    
 }
+const int8_t charVerticalOffset15x15[75] PROGMEM = {
+  // A–Z → index 0–25
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  // a–z → index 26–51
+  0, 0, 0, 0, 0, 0, 1, 0, 0, 1,  // g, j
+  0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0,  // p, q, y
+  // 0–9 → index 52–61
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  // punctuation/symbols → 62–74
+  1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1
+};
