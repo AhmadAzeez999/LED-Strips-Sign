@@ -115,8 +115,6 @@ void RemoteControl::setDefaultMessage(String remoteCode)
 
 void RemoteControl::useRemote()
 {
-  Timer::getInstance().updateTimer();
-
   if (IrReceiver.decode())
   {
       uint32_t remoteCode = IrReceiver.decodedIRData.decodedRawData;

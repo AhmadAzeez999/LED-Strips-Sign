@@ -46,7 +46,7 @@ void setup()
   // parseInput("$pTimer$");
   // parseInput("$rTimer$");
 
-  //timer.startTimer(5, 0);
+
 }
 
 void loop()
@@ -55,14 +55,12 @@ void loop()
   {
     // Serial.begin(9600); Resetting the arduino with every message
     // display.setup(100);
-
     // Extracting size
     String input = Serial.readStringUntil('\n');  // Read until newline
     parseInput(input);
   }
 
   remote.useRemote();
-  //timer.startTimer(5, 0);
   timer.updateTimer();
 }
 
