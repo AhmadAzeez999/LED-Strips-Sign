@@ -7,6 +7,7 @@ Display* Display::instance = nullptr;
 extern uint32_t currentTopColourHex = 0xFF0000;
 extern uint32_t currentBottomColourHex = 0xFF0000;
 extern uint32_t currentFullColourHex = 0xFF0000;
+extern int currentBrightness = 10;
 
 // Singleton accessor
 Display& Display::getInstance()
@@ -35,6 +36,8 @@ Display::Display()
 // Initialize LED Matrix
 void Display::setup(int brightness)
 {
+  currentBrightness = brightness;
+
   for (int i = 0; i < NUM_STRIPS; i++)
   {
     strips[i] = Adafruit_NeoPixel(NUMPIXELS, stripPins[i], NEO_GRB + NEO_KHZ800);
@@ -47,6 +50,8 @@ void Display::setup(int brightness)
 // To set the brightness
 void Display::setBrightness(int brightness)
 {
+  currentBrightness = brightness;
+
   for (int i = 0; i < NUM_STRIPS; i++)
   {
     strips[i].setBrightness(brightness);
@@ -251,7 +256,7 @@ void Display::drawCharacter15x15(char c, int x, int y, uint32_t color)
 
   int charWidth = maxCol - minCol;
 
-  // ✅ STEP 3a: Get offset
+  // Get offset
   int yOffset = getCharVerticalOffset(c, true);
 
   // Draw only the necessary part of the character
@@ -263,7 +268,7 @@ void Display::drawCharacter15x15(char c, int x, int y, uint32_t color)
     {
       if ((rowData >> (14 - col)) & 1)
       {
-        // ✅ STEP 3b: Apply offset to y
+        // Apply offset to y
         setPixel(x + (col - minCol), y + row + yOffset, color);
       }
     }
@@ -301,6 +306,11 @@ void Display::displayText(const char* text1, const char* text2, const char* comm
   {
     // Static display implementation
     displayStaticText(text1, text2, useBigFont);
+  }
+  else if (strcmp(command, "breath") == 0)
+  {
+    // Static display implementation
+    breatheText(text1, text2, useBigFont);
   }
 }
 
@@ -413,11 +423,11 @@ void Display::scrollTextContinuous(const char* text1, const char* text2, int tot
   delete[] text2Copy;
 }
 
-//Breathing implementation
+// Breathing implementation
 void Display::breatheText(const char* text1, const char* text2, bool useBigFont)
 {
   const int minBrightness = 10;
-  const int maxBrightness = 255;
+  const int maxBrightness = currentBrightness;
   const int steps = 40;
   const int delayMs = 30;
 
@@ -450,6 +460,7 @@ void Display::breatheText(const char* text1, const char* text2, bool useBigFont)
     {
       scrollInterrupt = true;
       clearBuffer(useBigFont);
+      setBrightness(currentBrightness);
     }
   }
 }

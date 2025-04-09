@@ -10,6 +10,7 @@
 extern uint32_t currentTopColourHex;
 extern uint32_t currentBottomColourHex;
 extern uint32_t currentFullColourHex;
+extern int currentBrightness;
 class Display
 {
 private:
